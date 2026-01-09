@@ -1,0 +1,3 @@
+[console_scripts]
+compare-solvers = contact_solver.scripts.compare_solvers:main
+sweep-compare = contact_solver.scripts.sweep_compare:main

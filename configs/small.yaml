@@ -1,0 +1,50 @@
+name: small
+description: Small configuration for quick testing
+random_seed: 42
+
+problem:
+  n_robots: 3
+  time_horizon: 5.0
+  timestep: 0.1
+  min_distance: 0.5
+  robot_radius: 0.25
+
+  environment:
+    pos_x_min: 0.0
+    pos_x_max: 15.0
+    pos_y_min: 0.0
+    pos_y_max: 15.0
+
+  dynamics:
+    vel_min: -3.0
+    vel_max: 3.0
+    acc_min: -15.0
+    acc_max: 15.0
+    jerk_min: -30.0
+    jerk_max: 30.0
+
+  scenario:
+    cluster_radius: 3.0
+    cluster_margin: 1.0
+    spacing: 0.8
+
+solver:
+  scp_tolerance_rel: 1e-5
+  scp_tolerance_abs: 1e-5
+  scp_max_iterations: 20
+  osqp_max_iter: 10000
+  osqp_eps_abs: 1e-5
+  osqp_eps_rel: 1e-5
+  osqp_polish: true
+  osqp_warm_start: true
+  osqp_verbose: false
+  max_contacts: 20
+  max_contacts_per_pair: 10
+  apply_velocity_bounds: true
+
+visualization:
+  show_plots: true
+  save_plots: false
+  output_dir: outputs
+  dpi: 150
+  figsize: [10, 10]

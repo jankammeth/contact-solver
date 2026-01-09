@@ -1,0 +1,214 @@
+Metadata-Version: 2.4
+Name: contact-solver
+Version: 0.1.0
+Summary: Contact-based trajectory optimization for multi-robot collision avoidance.
+Author: Jan Kamm
+License: Apache-2.0
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=1.23
+Requires-Dist: scipy>=1.10
+Requires-Dist: matplotlib>=3.7
+Requires-Dist: osqp>=0.6
+Requires-Dist: omegaconf>=2.2.0
+Requires-Dist: pandas>=2.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+Requires-Dist: pytest-cov>=4; extra == "dev"
+Requires-Dist: ruff>=0.6; extra == "dev"
+Requires-Dist: black>=24; extra == "dev"
+
+# Contact Solver
+
+Comparison framework for multi-robot trajectory optimization approaches:
+
+- **LiftedSCP**: QP-based Sequential Convex Programming with explicit position/velocity/acceleration variables
+- **ContactSolver**: Analytical piecewise cubic solver using sequential contact insertion
+
+Both solvers generate collision-free trajectories for double-integrator robot dynamics.
+
+## Installation
+
+```bash
+# Clone and install in development mode
+cd contact_solver
+pip install -e .
+
+# Or install dependencies manually
+pip install numpy scipy matplotlib osqp omegaconf pandas
+```
+
+## Quick Start
+
+### Single Comparison
+
+```bash
+# Run comparison on small problem
+python scripts/compare_solvers.py --config small --seed 42
+
+# With visualization disabled
+python scripts/compare_solvers.py --no-plot
+
+# Verbose output
+python scripts/compare_solvers.py -v
+
+# Different scenario type
+python scripts/compare_solvers.py --scenario swap
+```
+
+### Scaling Sweep
+
+```bash
+# Run sweep across robot counts
+python scripts/sweep_compare.py --n-min 2 --n-max 10 --seeds 5
+
+# Custom output
+python scripts/sweep_compare.py --output results.csv --timeout 120
+```
+
+### Python API
+
+```python
+from contact_solver import (
+    Config, ContactSolver, LiftedSCP,
+    generate_random_positions, visualize_comparison
+)
+
+# Create configuration
+config = Config(
+    name="example",
+    problem=ProblemConfig(
+        n_robots=5,
+        time_horizon=5.0,
+        timestep=0.2,
+        min_distance=0.8,
+    ),
+)
+
+# Generate scenario
+initial, final = generate_random_positions(config, seed=42)
+
+# Run LiftedSCP
+scp = LiftedSCP(config)
+scp.set_initial_states(initial)
+scp.set_final_states(final)
+scp_result = scp.generate_trajectories()
+
+# Run ContactSolver
+contact = ContactSolver(config)
+contact.set_initial_states(initial)
+contact.set_final_states(final)
+contact_result = contact.generate_trajectories()
+
+# Visualize comparison
+visualize_comparison(
+    scp_result["trajectories"],
+    contact_result["trajectories"],
+    config,
+)
+```
+
+## Project Structure
+
+```
+contact_solver/
+├── configs/                    # YAML configurations
+│   ├── default.yaml           # Standard parameters
+│   ├── small.yaml             # Quick testing
+│   └── sweep.yaml             # Scaling experiments
+├── scripts/
+│   ├── compare_solvers.py     # Single comparison
+│   └── sweep_compare.py       # Multi-scale sweep
+├── src/contact_solver/
+│   ├── __init__.py            # Public API
+│   ├── collision.py           # KDTree collision detection
+│   ├── config.py              # OmegaConf schema
+│   ├── scenarios.py           # Position generation
+│   ├── viz.py                 # Matplotlib visualization
+│   └── solvers/
+│       ├── base.py            # Solver ABC
+│       ├── contact_solver.py  # Analytical solver
+│       ├── lifted_scp.py      # QP-based solver
+│       ├── cubic_utils.py     # Polynomial utilities
+│       ├── velocity_arcs.py   # Velocity bound handling
+│       ├── osqp_utils.py      # QP interface
+│       └── constraints/       # Constraint builders
+│           ├── dynamics.py    # Double-integrator constraints
+│           └── collision.py   # Linearized collision constraints
+└── tests/                     # pytest tests
+```
+
+## Solvers
+
+### LiftedSCP
+
+QP-based approach using Sequential Convex Programming:
+
+- **Variables**: Position, velocity, acceleration at each timestep
+- **Dynamics**: Explicit integration constraints
+- **Collisions**: Linearized distance constraints, re-linearized each SCP iteration
+- **Objective**: Minimize total acceleration squared
+
+Pros:
+- Well-conditioned (explicit velocity/acceleration variables)
+- Handles box constraints naturally
+- Mature OSQP backend
+
+Cons:
+- O(N²K) collision constraints per iteration
+- Multiple QP solves for convergence
+
+### ContactSolver
+
+Analytical approach using piecewise cubic trajectories:
+
+- **Representation**: Cubic polynomials between contact points
+- **Collisions**: Solved analytically via sequential contact insertion
+- **Dynamics**: Continuous acceleration, jerk discontinuities at contacts
+- **Velocity bounds**: Post-hoc insertion of velocity arcs
+
+Pros:
+- Continuous-time collision avoidance
+- Fast for low contact counts
+- Exact collision distance (no discretization)
+
+Cons:
+- Nonlinear system solve (scipy.fsolve)
+- May struggle with highly constrained problems
+
+## Configuration
+
+Key parameters in `configs/*.yaml`:
+
+```yaml
+problem:
+  n_robots: 10              # Number of robots
+  time_horizon: 10.0        # Total time [s]
+  timestep: 0.2             # Discretization [s]
+  min_distance: 0.8         # Collision radius [m]
+  
+  dynamics:
+    vel_max: 2.0            # Max velocity [m/s]
+    acc_max: 15.0           # Max acceleration [m/s²]
+    
+solver:
+  scp_max_iterations: 15    # LiftedSCP iterations
+  max_contacts: 20          # ContactSolver contacts
+```
+
+## Testing
+
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run specific test file
+pytest tests/test_solvers.py -v
+
+# Run with coverage
+pytest tests/ --cov=contact_solver
+```
+
+## License
+
+MIT
