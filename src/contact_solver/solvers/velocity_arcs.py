@@ -1,9 +1,4 @@
-"""Velocity arc insertion for enforcing component-wise velocity bounds.
-
-When velocity bounds are violated, this module inserts velocity arcs
-(constant velocity segments) using a closed-form solution that minimizes
-acceleration cost.
-"""
+"""Velocity arc insertion for enforcing component-wise velocity bounds."""
 
 from dataclasses import dataclass
 
@@ -12,20 +7,15 @@ import numpy as np
 
 @dataclass
 class ComponentArc:
-    """Represents a velocity arc for a single component (x or y)."""
-
-    component: int  # 0 for x, 1 for y
-    t1: float  # Entry time into saturation (global time)
-    t2: float  # Exit time from saturation (global time)
-    v_sat: float  # Saturation velocity (+/- v_max)
-    p1: float  # Position at arc entry
-    p2: float  # Position at arc exit
+    component: int
+    t1: float
+    t2: float
+    v_sat: float
+    p1: float
+    p2: float
 
 
-def eval_1d_cubic(
-    p0: float, v0: float, pf: float, vf: float, T: float, t: float
-) -> tuple[float, float, float]:
-    """Evaluate 1D cubic trajectory at time t. Returns (position, velocity, acceleration)."""
+def eval_1d_cubic(p0: float, v0: float, pf: float, vf: float, T: float, t: float):
     if T < 1e-10:
         return p0, v0, 0.0
 
@@ -39,10 +29,7 @@ def eval_1d_cubic(
     return pos, vel, acc
 
 
-def compute_max_speed_component(
-    p0: float, v0: float, pf: float, vf: float, T: float
-) -> tuple[float, float, float]:
-    """Compute maximum speed for a 1D cubic trajectory."""
+def compute_max_speed_component(p0: float, v0: float, pf: float, vf: float, T: float):
     if T < 1e-10:
         return abs(v0), 0.0, v0
 
@@ -72,8 +59,7 @@ def compute_max_speed_component(
 
 def compute_velocity_arc_params(
     p0: float, v0: float, pf: float, vf: float, T: float, v_max: float, tol: float = 1e-6
-) -> tuple[float, float, float, float, float] | None:
-    """Compute velocity arc parameters using closed-form solution."""
+):
     max_speed, t_max, v_at_max = compute_max_speed_component(p0, v0, pf, vf, T)
 
     if max_speed <= v_max + tol:
@@ -122,8 +108,7 @@ def sample_component_trajectory(
     arc: ComponentArc | None,
     times: np.ndarray,
     t_offset: float = 0.0,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Sample a 1D trajectory with optional velocity arc."""
+):
     n = len(times)
     positions = np.zeros(n)
     velocities = np.zeros(n)
@@ -175,8 +160,7 @@ def apply_velocity_bounds_to_trajectories(
     knot_times: list[float],
     v_max: float,
     verbose: bool = False,
-) -> tuple[list[np.ndarray], list[np.ndarray], list[np.ndarray], list[float]]:
-    """Apply component-wise velocity bounds to sampled trajectories."""
+):
     N = len(positions)
     T_total = times[-1]
 

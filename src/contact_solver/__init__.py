@@ -1,4 +1,4 @@
-"""Contact Solver - Contact-based trajectory optimization for multi-robot collision avoidance."""
+"""Contact Solver - Multi-robot trajectory optimization comparison."""
 
 from .collision import CollisionReport, detect_collisions
 from .config import Config, get_default_config, get_small_config, load_config
@@ -16,23 +16,18 @@ from .viz import (
 )
 
 __all__ = [
-    # Config
     "Config",
     "load_config",
     "get_default_config",
     "get_small_config",
-    # Solvers
     "Solver",
     "ContactSolver",
     "LiftedSCP",
-    # Collision detection
     "CollisionReport",
     "detect_collisions",
-    # Scenario generation
     "generate_random_positions",
     "generate_swap_positions",
     "generate_random_obstacles",
-    # Visualization
     "visualize_trajectories",
     "visualize_comparison",
     "visualize_pairwise_distances",
