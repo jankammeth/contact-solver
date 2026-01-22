@@ -11,8 +11,6 @@ from .constraints import Constraint
 
 @dataclass
 class OSQPSettings:
-    """OSQP solver settings."""
-
     max_iter: int = 4000
     eps_abs: float = 1e-5
     eps_rel: float = 1e-5
@@ -33,7 +31,6 @@ class OSQPSettings:
 
 
 def _is_osqp_1x() -> bool:
-    """Check if OSQP version is 1.x."""
     version = getattr(osqp, "__version__", "0.0.0")
     return version.startswith("1.")
 
@@ -45,19 +42,12 @@ def solve_qp(
     warm_start: np.ndarray | None = None,
     settings: OSQPSettings | None = None,
 ) -> tuple[np.ndarray, dict]:
-    """Solve QP with OSQP.
-
-    min  0.5 * x'Px + q'x
-    s.t. l <= Ax <= u
-    """
     settings = settings or OSQPSettings()
 
-    # Stack constraints
     A = sp.vstack([c.matrix for c in constraints], format="csc")
     lower = np.concatenate([c.lower for c in constraints])
     u = np.concatenate([c.upper for c in constraints])
 
-    # Version-compatible parameters
     is_1x = _is_osqp_1x()
     setup_kwargs = {
         "P": P,
@@ -78,7 +68,6 @@ def solve_qp(
         setup_kwargs["warm_start"] = settings.warm_start
         setup_kwargs["polish"] = settings.polish
 
-    # Solve
     problem = osqp.OSQP()
     problem.setup(**setup_kwargs)
 
@@ -88,7 +77,6 @@ def solve_qp(
     result = problem.solve()
     info = result.info
 
-    # Extract metrics
     prim_res = getattr(info, "prim_res", None) or getattr(info, "pri_res", None)
     dual_res = getattr(info, "dual_res", None) or getattr(info, "dua_res", None)
 
@@ -105,7 +93,7 @@ def solve_qp(
         "run_time": info.run_time,
     }
 
-    converged = info.status_val in (1, 2)  # Solved or Solved Inaccurate
+    converged = info.status_val in (1, 2)
 
     if not converged:
         raise RuntimeError(

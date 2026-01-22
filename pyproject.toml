@@ -29,8 +29,8 @@ dev = [
 ]
 
 [project.scripts]
-compare-solvers = "contact_solver.scripts.compare_solvers:main"
-sweep-compare = "contact_solver.scripts.sweep_compare:main"
+compare-solvers = "contact_solver.cli.compare_solvers:main"
+sweep-compare = "contact_solver.cli.sweep_compare:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

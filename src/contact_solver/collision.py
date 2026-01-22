@@ -11,44 +11,41 @@ COLLISION_DETECTION_TOLERANCE = 1e-2
 
 @dataclass
 class CollisionReport:
-    """Result of collision detection."""
-
     robot_robot: list[tuple[int, int, int, float]] = field(default_factory=list)
+    robot_obstacle: list[tuple[int, int, int, float]] = field(default_factory=list)
     timing: dict[str, float] = field(default_factory=dict)
 
     @property
     def all_satisfied(self) -> bool:
-        return len(self.robot_robot) == 0
+        return len(self.robot_robot) == 0 and len(self.robot_obstacle) == 0
 
     @property
     def worst_violation(self) -> float:
-        all_dists = [v[3] for v in self.robot_robot]
+        all_dists = [v[3] for v in self.robot_robot] + [v[3] for v in self.robot_obstacle]
         return max(0.0, -min(all_dists)) if all_dists else 0.0
 
     @property
     def n_violations(self) -> int:
+        return len(self.robot_robot) + len(self.robot_obstacle)
+
+    @property
+    def n_robot_robot_violations(self) -> int:
         return len(self.robot_robot)
+
+    @property
+    def n_robot_obstacle_violations(self) -> int:
+        return len(self.robot_obstacle)
 
 
 def detect_collisions(
     positions: list[np.ndarray] | np.ndarray,
     min_distance: float,
     robot_timeframes: list[list[int]] | None = None,
+    obstacle_positions: np.ndarray | None = None,
 ) -> CollisionReport:
-    """Detect all robot-robot collisions using scipy's cKDTree.
-
-    Args:
-        positions: Either (N, K, 2) array or list of (K_i, 2) arrays per robot
-        min_distance: Minimum allowed distance
-        robot_timeframes: List of [k_start, k_end] per robot (None = full trajectory)
-
-    Returns:
-        CollisionReport with all violations
-    """
     report = CollisionReport()
     t_start = time.perf_counter()
 
-    # Convert to list format
     if isinstance(positions, np.ndarray):
         positions_list = [positions[i] for i in range(positions.shape[0])]
         is_uniform = True
@@ -57,13 +54,17 @@ def detect_collisions(
         lengths = [len(p) for p in positions]
         is_uniform = len(set(lengths)) == 1 and robot_timeframes is None
 
-    # Detect collisions
     if is_uniform and robot_timeframes is None:
         trajectories = np.array(positions_list)
         report.robot_robot = _detect_all_timesteps(trajectories, min_distance)
     else:
         report.robot_robot = _detect_with_timeframes(
             positions_list, min_distance, robot_timeframes
+        )
+
+    if obstacle_positions is not None and len(obstacle_positions) > 0:
+        report.robot_obstacle = _detect_robot_obstacle(
+            positions_list, obstacle_positions, min_distance, robot_timeframes
         )
 
     report.timing["total"] = time.perf_counter() - t_start
@@ -74,11 +75,10 @@ def _detect_all_timesteps(
     trajectories: np.ndarray,
     min_distance: float,
 ) -> list[tuple[int, int, int, float]]:
-    """Detect collisions across all timesteps for uniform trajectories."""
     N, K, _ = trajectories.shape
     threshold = min_distance - COLLISION_DETECTION_TOLERANCE
 
-    all_violations = []
+    violations = []
 
     for k in range(K):
         positions = trajectories[:, k, :]
@@ -94,9 +94,9 @@ def _detect_all_timesteps(
 
         for idx in range(len(pairs)):
             i, j = int(pairs[idx, 0]), int(pairs[idx, 1])
-            all_violations.append((k, i, j, float(distances[idx])))
+            violations.append((k, i, j, float(distances[idx])))
 
-    return all_violations
+    return violations
 
 
 def _detect_with_timeframes(
@@ -104,7 +104,6 @@ def _detect_with_timeframes(
     min_distance: float,
     robot_timeframes: list[list[int]] | None,
 ) -> list[tuple[int, int, int, float]]:
-    """Detect collisions with variable robot timeframes."""
     from collections import defaultdict
 
     threshold = min_distance - COLLISION_DETECTION_TOLERANCE
@@ -112,13 +111,12 @@ def _detect_with_timeframes(
     if robot_timeframes is None:
         robot_timeframes = [[0, len(positions[i])] for i in range(len(positions))]
 
-    # Build schedule: timestep -> [(robot_id, k_local), ...]
     schedule = defaultdict(list)
     for i, (start, end) in enumerate(robot_timeframes):
         for k_local in range(end - start):
             schedule[start + k_local].append((i, k_local))
 
-    all_violations = []
+    violations = []
 
     for t in sorted(schedule.keys()):
         active = schedule[t]
@@ -143,6 +141,37 @@ def _detect_with_timeframes(
             rj = int(robot_ids[pairs[idx, 1]])
             if ri > rj:
                 ri, rj = rj, ri
-            all_violations.append((t, ri, rj, float(distances[idx])))
+            violations.append((t, ri, rj, float(distances[idx])))
 
-    return all_violations
+    return violations
+
+
+def _detect_robot_obstacle(
+    positions: list[np.ndarray],
+    obstacle_positions: np.ndarray,
+    min_distance: float,
+    robot_timeframes: list[list[int]] | None,
+) -> list[tuple[int, int, int, float]]:
+    threshold = min_distance - COLLISION_DETECTION_TOLERANCE
+    violations = []
+
+    N = len(positions)
+
+    if robot_timeframes is None:
+        robot_timeframes = [[0, len(positions[i])] for i in range(N)]
+
+    obstacle_tree = cKDTree(obstacle_positions)
+
+    for i in range(N):
+        start, end = robot_timeframes[i]
+        for k_local, k_global in enumerate(range(start, end)):
+            pos = positions[i][k_local]
+
+            indices = obstacle_tree.query_ball_point(pos, threshold)
+
+            for j in indices:
+                dist = np.linalg.norm(pos - obstacle_positions[j])
+                if dist < threshold:
+                    violations.append((k_global, i, j, float(dist)))
+
+    return violations

@@ -7,7 +7,6 @@ from matplotlib.patches import Circle, Rectangle
 from .config import Config
 
 
-# Plot style configuration
 PLOT_CONFIG = {
     "font.family": "serif",
     "font.size": 11,
@@ -23,30 +22,43 @@ PLOT_CONFIG = {
 
 
 def apply_plot_style():
-    """Apply consistent plot styling."""
     plt.rcParams.update(PLOT_CONFIG)
 
 
-def generate_colors(n: int) -> list:
-    """Generate n distinct colors from a colormap."""
-    cmap = plt.cm.tab10
-    return [cmap(i % 10) for i in range(n)]
+def generate_colors(n: int, colormap: str = "gnuplot", start: float = 0.1, end: float = 0.9) -> list:
+    if n == 0:
+        return []
+    
+    cmap = plt.cm.get_cmap(colormap)
+    
+    if n == 1:
+        values = [0.5]
+    else:
+        values = np.linspace(start, end, n)
+    
+    return [cmap(val)[:3] for val in values]
+
+
+def _draw_obstacles(ax, obstacle_positions: np.ndarray, radius: float):
+    for obs in obstacle_positions:
+        circle = Circle(
+            obs, radius,
+            facecolor="gray",
+            edgecolor="black",
+            linewidth=1,
+            alpha=0.5,
+            zorder=1,
+        )
+        ax.add_patch(circle)
 
 
 def visualize_trajectories(
     positions: list[np.ndarray],
     config: Config,
+    obstacle_positions: np.ndarray | None = None,
     title: str = "Trajectories",
     show: bool | None = None,
 ):
-    """Visualize 2D trajectories.
-
-    Args:
-        positions: List of (K, 2) position arrays per robot
-        config: Configuration
-        title: Plot title
-        show: Whether to show plot (default: from config)
-    """
     apply_plot_style()
 
     N = len(positions)
@@ -59,7 +71,6 @@ def visualize_trajectories(
     fig, ax = plt.subplots(figsize=config.visualization.figsize)
     ax.set_aspect("equal")
 
-    # Workspace boundary
     ax.add_patch(
         Rectangle(
             (env.pos_x_min, env.pos_y_min),
@@ -73,29 +84,24 @@ def visualize_trajectories(
         )
     )
 
-    # Plot trajectories
+    if obstacle_positions is not None and len(obstacle_positions) > 0:
+        _draw_obstacles(ax, obstacle_positions, min_distance)
+
     for i in range(N):
         color = colors[i]
         pos = positions[i]
 
-        # Trajectory line
-        ax.plot(pos[:, 0], pos[:, 1], color=color, linewidth=1.5, alpha=0.8)
+        ax.plot(pos[:, 0], pos[:, 1], color=color, linewidth=1.5, alpha=0.8, zorder=2)
 
-        # Start marker (circle)
         ax.scatter(
-            pos[0, 0], pos[0, 1], color=color, marker="o", s=80, edgecolors="black", linewidths=0.5
+            pos[0, 0], pos[0, 1], color=color, marker="o", s=80,
+            edgecolors="black", linewidths=0.5, zorder=4
         )
-        ax.add_patch(Circle(pos[0], robot_radius, color=color, alpha=0.3))
+        ax.add_patch(Circle(pos[0], robot_radius, color=color, alpha=0.3, zorder=3))
 
-        # End marker (square)
         ax.scatter(
-            pos[-1, 0],
-            pos[-1, 1],
-            color=color,
-            marker="s",
-            s=80,
-            edgecolors="black",
-            linewidths=0.5,
+            pos[-1, 0], pos[-1, 1], color=color, marker="s", s=80,
+            edgecolors="black", linewidths=0.5, zorder=4
         )
 
     ax.set_xlim(env.pos_x_min - 1, env.pos_x_max + 1)
@@ -117,24 +123,121 @@ def visualize_trajectories(
     return fig, ax
 
 
+def visualize_time_snapshots(
+    positions: list[np.ndarray],
+    config: Config,
+    n_snapshots: int = 5,
+    obstacle_positions: np.ndarray | None = None,
+    title: str = "Time Snapshots",
+    show: bool | None = None,
+):
+    apply_plot_style()
+
+    N = len(positions)
+    K = len(positions[0])
+    env = config.problem.environment
+    robot_radius = config.problem.robot_radius
+    min_distance = config.problem.min_distance
+    timestep = config.problem.timestep
+
+    colors = generate_colors(N)
+
+    fig, axes = plt.subplots(1, n_snapshots, figsize=(4 * n_snapshots, 4))
+    if n_snapshots == 1:
+        axes = [axes]
+
+    frame_indices = np.linspace(0, K - 1, n_snapshots, dtype=int)
+
+    for f_idx, (ax, frame_idx) in enumerate(zip(axes, frame_indices)):
+        t = frame_idx * timestep
+
+        ax.set_aspect("equal")
+        ax.set_xlim(env.pos_x_min - 0.5, env.pos_x_max + 0.5)
+        ax.set_ylim(env.pos_y_min - 0.5, env.pos_y_max + 0.5)
+        ax.set_title(rf"$t = {t:.2f}$ s")
+
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+        ax.add_patch(
+            Rectangle(
+                (env.pos_x_min, env.pos_y_min),
+                env.pos_x_max - env.pos_x_min,
+                env.pos_y_max - env.pos_y_min,
+                linewidth=1,
+                edgecolor="black",
+                facecolor="none",
+                linestyle="--",
+                alpha=0.5,
+            )
+        )
+
+        if obstacle_positions is not None and len(obstacle_positions) > 0:
+            _draw_obstacles(ax, obstacle_positions, min_distance)
+
+        for i in range(N):
+            color = colors[i]
+            pos = positions[i]
+            current_pos = pos[frame_idx]
+
+            if frame_idx > 0:
+                history = pos[:frame_idx + 1]
+                ax.plot(
+                    history[:, 0], history[:, 1],
+                    color=color, linewidth=1, alpha=0.5, zorder=2
+                )
+
+            safety_circle = Circle(
+                current_pos, min_distance,
+                facecolor=color, edgecolor="none",
+                alpha=0.1, zorder=2
+            )
+            ax.add_patch(safety_circle)
+
+            robot_circle = Circle(
+                current_pos, robot_radius,
+                facecolor=color, edgecolor="black",
+                linewidth=0.5, alpha=0.8, zorder=3
+            )
+            ax.add_patch(robot_circle)
+
+            if f_idx == 0:
+                ax.scatter(
+                    pos[0, 0], pos[0, 1],
+                    marker="o", s=30, color="white",
+                    edgecolors=color, linewidths=1, zorder=4
+                )
+
+            if f_idx == n_snapshots - 1:
+                ax.scatter(
+                    pos[-1, 0], pos[-1, 1],
+                    marker="s", s=30, color="white",
+                    edgecolors=color, linewidths=1, zorder=4
+                )
+
+    plt.suptitle(title, fontsize=14)
+    plt.tight_layout()
+
+    if show is None:
+        show = config.visualization.show_plots
+
+    if show:
+        plt.show()
+    else:
+        plt.close()
+
+    return fig, axes
+
+
 def visualize_comparison(
     scp_trajectories: dict,
     contact_trajectories: dict,
     config: Config,
     contact_times: list[float] | None = None,
+    obstacle_positions: np.ndarray | None = None,
     title: str = "LiftedSCP vs ContactSolver",
     show: bool | None = None,
 ):
-    """Visualize comparison between SCP and ContactSolver trajectories.
-
-    Args:
-        scp_trajectories: Dict with 'positions', 'velocities', 'accelerations' from SCP
-        contact_trajectories: Dict with same keys from ContactSolver
-        config: Configuration
-        contact_times: Optional list of contact times to mark
-        title: Plot title
-        show: Whether to show plot
-    """
     apply_plot_style()
 
     scp_pos = scp_trajectories["positions"]
@@ -150,52 +253,48 @@ def visualize_comparison(
     K_cont = len(cont_pos[0])
 
     h = config.problem.timestep
-    T = K_scp * h
+    T = config.problem.time_horizon
+    min_distance = config.problem.min_distance
 
-    times_scp = np.linspace(0, T, K_scp)
+    times_scp = h * np.arange(1, K_scp + 1)
     times_cont = np.linspace(0, T, K_cont)
 
-    min_distance = config.problem.min_distance
     colors = generate_colors(N)
 
     fig, axes = plt.subplots(4, 2, figsize=(14, 10))
 
-    # Row 0: Positions
     for col, (label, comp) in enumerate([(r"$p_x$ [m]", 0), (r"$p_y$ [m]", 1)]):
         ax = axes[0, col]
         for i in range(N):
-            ax.plot(times_scp, scp_pos[i][:, comp], color=colors[i], linewidth=1.5, linestyle="-")
-            ax.plot(
-                times_cont, cont_pos[i][:, comp], color=colors[i], linewidth=1.5, linestyle="--"
-            )
+            ax.plot(times_scp, scp_pos[i][:, comp], color=colors[i], linewidth=1.5,
+                    linestyle="-", marker=".", markersize=2, alpha=0.8)
+            ax.plot(times_cont, cont_pos[i][:, comp], color=colors[i], linewidth=1.5,
+                    linestyle="--", alpha=0.6)
         ax.set_ylabel(label)
         ax.grid(True, alpha=0.3)
         if col == 0:
             ax.set_title(title)
 
-    # Row 1: Velocities
     for col, (label, comp) in enumerate([(r"$v_x$ [m/s]", 0), (r"$v_y$ [m/s]", 1)]):
         ax = axes[1, col]
         for i in range(N):
-            ax.plot(times_scp, scp_vel[i][:, comp], color=colors[i], linewidth=1.5, linestyle="-")
-            ax.plot(
-                times_cont, cont_vel[i][:, comp], color=colors[i], linewidth=1.5, linestyle="--"
-            )
+            ax.plot(times_scp, scp_vel[i][:, comp], color=colors[i], linewidth=1.5,
+                    linestyle="-", marker=".", markersize=2, alpha=0.8)
+            ax.plot(times_cont, cont_vel[i][:, comp], color=colors[i], linewidth=1.5,
+                    linestyle="--", alpha=0.6)
         ax.set_ylabel(label)
         ax.grid(True, alpha=0.3)
 
-    # Row 2: Accelerations
     for col, (label, comp) in enumerate([(r"$a_x$ [m/s²]", 0), (r"$a_y$ [m/s²]", 1)]):
         ax = axes[2, col]
         for i in range(N):
-            ax.plot(times_scp, scp_acc[i][:, comp], color=colors[i], linewidth=1.5, linestyle="-")
-            ax.plot(
-                times_cont, cont_acc[i][:, comp], color=colors[i], linewidth=1.5, linestyle="--"
-            )
+            ax.plot(times_scp, scp_acc[i][:, comp], color=colors[i], linewidth=1.5,
+                    linestyle="-", marker=".", markersize=2, alpha=0.8)
+            ax.plot(times_cont, cont_acc[i][:, comp], color=colors[i], linewidth=1.5,
+                    linestyle="--", alpha=0.6)
         ax.set_ylabel(label)
         ax.grid(True, alpha=0.3)
 
-    # Row 3, Col 0: Pairwise distances
     ax = axes[3, 0]
 
     def compute_distances(positions):
@@ -212,8 +311,10 @@ def visualize_comparison(
     cont_dist = compute_distances(cont_pos)
 
     for idx in range(scp_dist.shape[1]):
-        ax.plot(times_scp, scp_dist[:, idx], color="steelblue", linewidth=1, alpha=0.7)
-        ax.plot(times_cont, cont_dist[:, idx], color="steelblue", linewidth=1, alpha=0.4, linestyle="--")
+        ax.plot(times_scp, scp_dist[:, idx], color="steelblue", linewidth=1.2,
+                linestyle="-", alpha=0.7)
+        ax.plot(times_cont, cont_dist[:, idx], color="steelblue", linewidth=1.2,
+                linestyle="--", alpha=0.4)
 
     ax.axhline(y=min_distance, color="red", linestyle="--", linewidth=1.5, alpha=0.7)
 
@@ -226,29 +327,34 @@ def visualize_comparison(
     ax.set_ylim(bottom=0)
     ax.grid(True, alpha=0.3)
 
-    # Row 3, Col 1: 2D trajectories
     ax = axes[3, 1]
     ax.set_aspect("equal")
 
+    if obstacle_positions is not None and len(obstacle_positions) > 0:
+        _draw_obstacles(ax, obstacle_positions, min_distance)
+
     for i in range(N):
         color = colors[i]
-        ax.plot(scp_pos[i][:, 0], scp_pos[i][:, 1], color=color, linewidth=1.5, linestyle="-")
-        ax.plot(cont_pos[i][:, 0], cont_pos[i][:, 1], color=color, linewidth=1.5, linestyle="--", alpha=0.6)
+        ax.plot(scp_pos[i][:, 0], scp_pos[i][:, 1], color=color, linewidth=1.5,
+                linestyle="-", alpha=0.8)
+        ax.plot(cont_pos[i][:, 0], cont_pos[i][:, 1], color=color, linewidth=1.5,
+                linestyle="--", alpha=0.5)
 
-        ax.scatter(scp_pos[i][0, 0], scp_pos[i][0, 1], color=color, marker="o", s=50, edgecolors="black", linewidths=0.5)
-        ax.scatter(scp_pos[i][-1, 0], scp_pos[i][-1, 1], color=color, marker="s", s=50, edgecolors="black", linewidths=0.5)
+        ax.scatter(scp_pos[i][0, 0], scp_pos[i][0, 1], color=color, marker="o", s=50,
+                   edgecolors="black", linewidths=0.5)
+        ax.scatter(scp_pos[i][-1, 0], scp_pos[i][-1, 1], color=color, marker="s", s=50,
+                   edgecolors="black", linewidths=0.5)
 
     ax.set_xlabel(r"$p_x$ [m]")
     ax.set_ylabel(r"$p_y$ [m]")
     ax.grid(True, alpha=0.3)
 
-    # Add legend to first plot
     axes[0, 0].legend(
         [
-            plt.Line2D([0], [0], color="black", linestyle="-"),
+            plt.Line2D([0], [0], color="black", linestyle="-", marker=".", markersize=3),
             plt.Line2D([0], [0], color="black", linestyle="--"),
         ],
-        ["LiftedSCP", "ContactSolver"],
+        ["LiftedSCP (discrete)", "ContactSolver (continuous)"],
         loc="upper right",
         fontsize=8,
     )
@@ -272,14 +378,6 @@ def visualize_pairwise_distances(
     title: str = "Pairwise Distances",
     show: bool | None = None,
 ):
-    """Visualize pairwise distances over time.
-
-    Args:
-        positions: List of (K, 2) position arrays per robot
-        config: Configuration
-        title: Plot title
-        show: Whether to show plot
-    """
     apply_plot_style()
 
     N = len(positions)

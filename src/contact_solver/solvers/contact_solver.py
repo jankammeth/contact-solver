@@ -1,9 +1,4 @@
-"""Contact-based trajectory optimization for multi-robot collision avoidance.
-
-Generates collision-free trajectories using sequential contact insertion.
-Trajectories are piecewise cubic polynomials with continuous acceleration
-and jerk discontinuities at contact points.
-"""
+"""Contact-based trajectory optimization using sequential contact insertion."""
 
 import time
 from dataclasses import dataclass
@@ -27,13 +22,11 @@ from .velocity_arcs import apply_velocity_bounds_to_trajectories
 
 @dataclass
 class _Contact:
-    """Contact between two robots at time t_star."""
-
     pair: tuple[int, int]
     t_star: float
-    phi: float  # Contact angle
-    lam: float  # Tangential velocity
-    r_others: dict  # Other relative coord states
+    phi: float
+    lam: float
+    r_others: dict
     v_others: dict
 
     def to_vector(self):
@@ -54,12 +47,28 @@ class _Contact:
         return cls(pair=pair, t_star=x[0], phi=x[1], lam=x[2], r_others=r_others, v_others=v_others)
 
 
+@dataclass
+class _ObstacleContact:
+    robot: int
+    obstacle: int
+    t_star: float
+    phi: float
+
+    def to_vector(self):
+        return np.array([self.t_star, self.phi])
+
+    @classmethod
+    def from_vector(cls, x, robot, obstacle):
+        return cls(robot=robot, obstacle=obstacle, t_star=x[0], phi=x[1])
+
+
 class ContactSolver(Solver):
     """Contact-based trajectory solver using sequential contact insertion."""
 
     def __init__(
         self,
         config: Config,
+        obstacle_positions: np.ndarray | None = None,
         verbose: bool = False,
         max_contacts: int | None = None,
         max_contacts_per_pair: int | None = None,
@@ -67,6 +76,7 @@ class ContactSolver(Solver):
     ):
         super().__init__(config)
         self.verbose = verbose
+        self.obstacle_positions = obstacle_positions
         self.max_contacts = max_contacts or config.solver.max_contacts
         self.max_contacts_per_pair = max_contacts_per_pair or config.solver.max_contacts_per_pair
         self.apply_velocity_bounds = (
@@ -79,7 +89,6 @@ class ContactSolver(Solver):
         verbose = verbose if verbose is not None else self.verbose
         t_start = time.time()
 
-        # Boundary conditions
         p0 = self.initial_positions.reshape(self.N, 2)
         pf = self.final_positions.reshape(self.N, 2)
         v0 = (
@@ -93,13 +102,11 @@ class ContactSolver(Solver):
             else np.zeros((self.N, 2))
         )
 
-        # Relative coordinates: r[i] = p[0] - p[i+1]
         r0 = {i: p0[0] - p0[i + 1] for i in range(self.N - 1)}
         v0_rel = {i: v0[0] - v0[i + 1] for i in range(self.N - 1)}
         rf = {i: pf[0] - pf[i + 1] for i in range(self.N - 1)}
         vf_rel = {i: vf[0] - vf[i + 1] for i in range(self.N - 1)}
 
-        # Center of mass trajectory
         c_coeffs = cubic_coefficients(
             np.mean(p0, axis=0),
             np.mean(v0, axis=0),
@@ -112,60 +119,84 @@ class ContactSolver(Solver):
         jerk_coeffs = self._compute_jerk_coeffs(pairs)
 
         contacts = []
-        pair_contact_counts = {pair: 0 for pair in pairs}
+        pair_cnt = {pair: 0 for pair in pairs}
+
+        obs_contacts = []
+        if self.obstacle_positions is not None and len(self.obstacle_positions) > 0:
+            n_obs = len(self.obstacle_positions)
+            obs_cnt = {(i, j): 0 for i in range(self.N) for j in range(n_obs)}
+        else:
+            obs_cnt = {}
 
         if verbose:
             print(f"ContactSolver: N={self.N}, T={self.T:.3f}, R={self.R:.3f}m")
+            if self.obstacle_positions is not None:
+                print(f"  {len(self.obstacle_positions)} obstacles")
 
-        # Main loop: find violations, add contacts
-        convergence_reason = "converged"
+        reason = "converged"
         for iteration in range(self.max_contacts + 1):
             segments = self._build_segments(contacts, r0, v0_rel, rf, vf_rel)
-            violations = self._find_violations(segments, contacts, pairs)
 
-            eligible_violations = [
-                v for v in violations if pair_contact_counts[v[0]] < self.max_contacts_per_pair
+            violations = self._find_violations(segments, contacts, pairs)
+            elig = [v for v in violations if pair_cnt[v[0]] < self.max_contacts_per_pair]
+
+            obs_violations = self._find_obstacle_violations(segments, c_coeffs, obs_contacts)
+            elig_obs = [
+                v for v in obs_violations
+                if obs_cnt.get((v[0], v[1]), 0) < self.max_contacts_per_pair
             ]
 
             if verbose:
-                if violations:
-                    worst = min(violations, key=lambda v: v[2])
-                    print(
-                        f"  Iter {iteration}: {len(violations)} violations, "
-                        f"worst: {worst[0]} @ t={worst[1]:.4f}s, d={worst[2]:.4f}m"
-                    )
+                if violations or obs_violations:
+                    worst_rr = min(violations, key=lambda v: v[2]) if violations else None
+                    worst_ro = min(obs_violations, key=lambda v: v[3]) if obs_violations else None
+                    msg = f"  Iter {iteration}: {len(violations)} robot-robot"
+                    if obs_violations:
+                        msg += f", {len(obs_violations)} robot-obstacle"
+                    if worst_rr:
+                        msg += f", worst RR: {worst_rr[0]} @ t={worst_rr[1]:.4f}s, d={worst_rr[2]:.4f}m"
+                    if worst_ro:
+                        msg += f", worst RO: r{worst_ro[0]}-o{worst_ro[1]} @ t={worst_ro[2]:.4f}s, d={worst_ro[3]:.4f}m"
+                    print(msg)
                 else:
                     print(f"  Iter {iteration}: Converged!")
 
-            if not violations:
+            if not violations and not obs_violations:
                 break
 
-            if not eligible_violations:
-                convergence_reason = "max_contacts_per_pair"
+            if not elig and not elig_obs:
+                reason = "max_contacts_per_pair"
                 break
 
             if iteration == self.max_contacts:
-                convergence_reason = "max_contacts"
+                reason = "max_contacts"
                 break
 
-            # Add contact at worst violation
-            worst = min(eligible_violations, key=lambda v: v[2])
-            pair, t_viol, _ = worst
-            new_contact = self._init_contact(pair, t_viol, segments, pairs)
-            contacts.append(new_contact)
-            contacts.sort(key=lambda c: c.t_star)
-            pair_contact_counts[pair] += 1
+            worst_rr_dist = min(v[2] for v in elig) if elig else np.inf
+            worst_ro_dist = min(v[3] for v in elig_obs) if elig_obs else np.inf
 
-            # Solve algebraic system
-            contacts, _ = self._solve_system(contacts, pairs, jerk_coeffs, r0, v0_rel, rf, vf_rel)
+            if worst_rr_dist <= worst_ro_dist and elig:
+                worst = min(elig, key=lambda v: v[2])
+                pair, t_viol, _ = worst
+                new_contact = self._init_contact(pair, t_viol, segments, pairs)
+                contacts.append(new_contact)
+                contacts.sort(key=lambda c: c.t_star)
+                pair_cnt[pair] += 1
 
-        # Sample trajectories
+                contacts, _ = self._solve_system(contacts, pairs, jerk_coeffs, r0, v0_rel, rf, vf_rel)
+            elif elig_obs:
+                worst = min(elig_obs, key=lambda v: v[3])
+                robot, obs_idx, t_viol, _ = worst
+                new_obs_contact = self._init_obstacle_contact(robot, obs_idx, t_viol, segments, c_coeffs)
+                obs_contacts.append(new_obs_contact)
+                obs_contacts.sort(key=lambda c: c.t_star)
+                obs_cnt[(robot, obs_idx)] = obs_cnt.get((robot, obs_idx), 0) + 1
+
         segments = self._build_segments(contacts, r0, v0_rel, rf, vf_rel)
         times, positions, velocities, accelerations = self._sample(segments, c_coeffs)
         contact_times = [c.t_star for c in contacts]
         arc_times = []
 
-        # Apply velocity bounds
         v_max = self.config.problem.dynamics.vel_max
         if self.apply_velocity_bounds and v_max > 0:
             max_vel = max(np.max(np.abs(v)) for v in velocities)
@@ -179,6 +210,7 @@ class ContactSolver(Solver):
                 )
 
         min_dist = self._compute_min_dist(positions)
+        min_obs_dist = self._compute_min_obstacle_dist(positions) if self.obstacle_positions is not None else np.inf
         self.K = len(times)
 
         return {
@@ -189,10 +221,12 @@ class ContactSolver(Solver):
             },
             "metrics": {
                 "timing": {"total_time": time.time() - t_start},
-                "converged": min_dist >= self.R - 1e-4,
-                "convergence_reason": convergence_reason,
+                "converged": min_dist >= self.R - 1e-4 and min_obs_dist >= self.R - 1e-4,
+                "convergence_reason": reason,
                 "num_contacts": len(contacts),
+                "num_obstacle_contacts": len(obs_contacts),
                 "min_distance": min_dist,
+                "min_obstacle_distance": min_obs_dist,
                 "num_velocity_arcs": len(arc_times) // 2,
             },
             "contact_times": contact_times,
@@ -200,7 +234,6 @@ class ContactSolver(Solver):
         }
 
     def _compute_jerk_coeffs(self, pairs):
-        """Compute jerk coupling coefficients for each pair."""
         coeffs = {}
         for pair in pairs:
             a, b = pair
@@ -220,21 +253,18 @@ class ContactSolver(Solver):
         return coeffs
 
     def _get_pair_expr(self, pair):
-        """Express p_a - p_b in terms of relative coords."""
         a, b = pair
         if a == 0:
             return [b - 1], [1.0]
         return [a - 1, b - 1], [-1.0, 1.0]
 
     def _get_other_indices(self, pair):
-        """Get indices not fully determined by contact."""
         a, b = pair
         if a == 0:
             return [i for i in range(self.N - 1) if i != b - 1]
         return [i for i in range(self.N - 1) if i != b - 1]
 
     def _build_segments(self, contacts, r0, v0_rel, rf, vf_rel):
-        """Build piecewise cubic segments for all relative coords."""
         if not contacts:
             return {
                 i: [(cubic_coefficients(r0[i], v0_rel[i], rf[i], vf_rel[i], self.T), 0.0, self.T)]
@@ -262,7 +292,6 @@ class ContactSolver(Solver):
         return segments
 
     def _get_contact_states(self, contact):
-        """Get relative coord states at contact."""
         a, b = contact.pair
         normal = np.array([np.cos(contact.phi), np.sin(contact.phi)])
         tangent = np.array([-np.sin(contact.phi), np.cos(contact.phi)])
@@ -285,7 +314,6 @@ class ContactSolver(Solver):
         return states
 
     def _find_violations(self, segments, contacts, pairs, tol=1e-6):
-        """Find distance violations."""
         contact_times = [c.t_star for c in contacts]
         violations = []
         n_segs = len(segments[0])
@@ -309,8 +337,44 @@ class ContactSolver(Solver):
                             violations.append((pair, t, dist))
         return violations
 
+    def _find_obstacle_violations(self, segments, c_coeffs, obs_contacts, tol=1e-6):
+        if self.obstacle_positions is None or len(self.obstacle_positions) == 0:
+            return []
+
+        violations = []
+        obs_contact_times = [c.t_star for c in obs_contacts]
+        n_segs = len(segments[0])
+
+        for robot in range(self.N):
+            for obs_idx, obs_pos in enumerate(self.obstacle_positions):
+                for seg_idx in range(n_segs):
+                    t_s = segments[0][seg_idx][1]
+                    t_e = segments[0][seg_idx][2]
+                    T_seg = t_e - t_s
+
+                    n_samples = 50
+                    for k in range(n_samples + 1):
+                        t_local = k * T_seg / n_samples
+                        t = t_s + t_local
+
+                        r_vals = {i: eval_cubic(segments[i][seg_idx][0], t_local) for i in range(self.N - 1)}
+                        c_pos = eval_cubic(c_coeffs, t)
+                        sum_r = sum(r_vals.values()) if r_vals else np.zeros(2)
+
+                        if robot == 0:
+                            p_robot = c_pos + sum_r / self.N
+                        else:
+                            p_robot = c_pos + sum_r / self.N - r_vals[robot - 1]
+
+                        dist = np.linalg.norm(p_robot - obs_pos)
+
+                        if dist < self.R - tol:
+                            if not any(abs(t - tc) < tol for tc in obs_contact_times):
+                                violations.append((robot, obs_idx, t, dist))
+
+        return violations
+
     def _init_contact(self, pair, t_star, segments, pairs):
-        """Initialize contact at violation point."""
         seg_idx = next(i for i, s in enumerate(segments[0]) if s[1] <= t_star <= s[2] + 1e-10)
         t_local = t_star - segments[0][seg_idx][1]
 
@@ -340,8 +404,28 @@ class ContactSolver(Solver):
             v_others={i: v_vals[i] for i in other_idx},
         )
 
+    def _init_obstacle_contact(self, robot, obs_idx, t_star, segments, c_coeffs):
+        seg_idx = next(i for i, s in enumerate(segments[0]) if s[1] <= t_star <= s[2] + 1e-10)
+        t_local = t_star - segments[0][seg_idx][1]
+
+        obs_pos = self.obstacle_positions[obs_idx]
+
+        r_vals = {i: eval_cubic(segments[i][seg_idx][0], t_local) for i in range(self.N - 1)}
+        c_pos = eval_cubic(c_coeffs, t_local + segments[0][seg_idx][1])
+        sum_r = sum(r_vals.values()) if r_vals else np.zeros(2)
+
+        if robot == 0:
+            p_robot = c_pos + sum_r / self.N
+        else:
+            p_robot = c_pos + sum_r / self.N - r_vals[robot - 1]
+
+        diff = p_robot - obs_pos
+        dist = np.linalg.norm(diff)
+        phi = np.arctan2(diff[1], diff[0]) if dist > 1e-10 else 0.0
+
+        return _ObstacleContact(robot=robot, obstacle=obs_idx, t_star=t_star, phi=phi)
+
     def _solve_system(self, contacts, pairs, jerk_coeffs, r0, v0_rel, rf, vf_rel):
-        """Solve algebraic system for all contacts."""
         if not contacts:
             return contacts, 0.0
 
@@ -366,13 +450,11 @@ class ContactSolver(Solver):
             for i, contact in enumerate(c_list):
                 T_before = segs[0][i][2] - segs[0][i][1]
 
-                # Acceleration continuity
                 for j in range(self.N - 1):
                     a_bef = eval_cubic_acc(segs[j][i][0], T_before)
                     a_aft = eval_cubic_acc(segs[j][i + 1][0], 0.0)
                     residuals.extend(a_bef - a_aft)
 
-                # Jerk coupling
                 jerks_bef = {j: eval_cubic_jerk(segs[j][i][0]) for j in range(self.N - 1)}
                 jerks_aft = {j: eval_cubic_jerk(segs[j][i + 1][0]) for j in range(self.N - 1)}
                 delta_j = {j: jerks_aft[j] - jerks_bef[j] for j in range(self.N - 1)}
@@ -412,7 +494,6 @@ class ContactSolver(Solver):
         return result, residual
 
     def _sample(self, segments, c_coeffs, n=1000):
-        """Sample trajectories at uniform time points."""
         times = np.linspace(0, self.T, n)
         positions = [np.zeros((n, 2)) for _ in range(self.N)]
         velocities = [np.zeros((n, 2)) for _ in range(self.N)]
@@ -436,9 +517,9 @@ class ContactSolver(Solver):
                     vc = eval_cubic_vel(c_coeffs, t)
                     ac = eval_cubic_acc(c_coeffs, t)
 
-                    sum_r = sum(r_vals.values())
-                    sum_v = sum(v_rels.values())
-                    sum_a = sum(a_rels.values())
+                    sum_r = sum(r_vals.values()) if r_vals else np.zeros(2)
+                    sum_v = sum(v_rels.values()) if v_rels else np.zeros(2)
+                    sum_a = sum(a_rels.values()) if a_rels else np.zeros(2)
 
                     positions[0][k] = c + sum_r / self.N
                     velocities[0][k] = vc + sum_v / self.N
@@ -453,11 +534,22 @@ class ContactSolver(Solver):
         return times, positions, velocities, accelerations
 
     def _compute_min_dist(self, positions):
-        """Compute minimum pairwise distance."""
         min_d = np.inf
         for k in range(len(positions[0])):
             for i in range(self.N):
                 for j in range(i + 1, self.N):
                     d = np.linalg.norm(positions[i][k] - positions[j][k])
+                    min_d = min(min_d, d)
+        return min_d
+
+    def _compute_min_obstacle_dist(self, positions):
+        if self.obstacle_positions is None or len(self.obstacle_positions) == 0:
+            return np.inf
+
+        min_d = np.inf
+        for k in range(len(positions[0])):
+            for i in range(self.N):
+                for obs in self.obstacle_positions:
+                    d = np.linalg.norm(positions[i][k] - obs)
                     min_d = min(min_d, d)
         return min_d

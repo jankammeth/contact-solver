@@ -11,6 +11,9 @@ src/contact_solver.egg-info/dependency_links.txt
 src/contact_solver.egg-info/entry_points.txt
 src/contact_solver.egg-info/requires.txt
 src/contact_solver.egg-info/top_level.txt
+src/contact_solver/scripts/__init__.py
+src/contact_solver/scripts/compare_solvers.py
+src/contact_solver/scripts/sweep_compare.py
 src/contact_solver/solvers/__init__.py
 src/contact_solver/solvers/base.py
 src/contact_solver/solvers/contact_solver.py

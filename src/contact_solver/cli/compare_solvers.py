@@ -53,7 +53,7 @@ def compute_min_distance(positions: list[np.ndarray]) -> float:
 def main():
     parser = argparse.ArgumentParser(description="Compare ContactSolver vs LiftedSCP")
     parser.add_argument("--config", default="small", help="Config name or path")
-    parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    parser.add_argument("--seed", type=int, default=None, help="Random seed (overrides config)")
     parser.add_argument("--scenario", choices=["random", "swap"], default="random")
     parser.add_argument("--no-plot", action="store_true", help="Disable plotting")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
@@ -66,18 +66,17 @@ def main():
         from contact_solver import get_small_config
         config = get_small_config()
 
-    config = config.override(**{
-        "random_seed": args.seed,
-        "visualization.show_plots": not args.no_plot,
-    })
+    # Override config with command-line args
+    overrides = {"visualization.show_plots": not args.no_plot}
+    if args.seed is not None:
+        overrides["random_seed"] = args.seed
+    config = config.override(**overrides)
 
-    np.random.seed(args.seed)
-
-    # Generate positions
+    # Generate positions (uses config.random_seed)
     if args.scenario == "swap":
-        initial, final = generate_swap_positions(config, seed=args.seed)
+        initial, final = generate_swap_positions(config)
     else:
-        initial, final = generate_random_positions(config, seed=args.seed)
+        initial, final = generate_random_positions(config)
 
     N = config.problem.n_robots
     h = config.problem.timestep

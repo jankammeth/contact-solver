@@ -9,8 +9,6 @@ from omegaconf import MISSING, OmegaConf
 
 @dataclass
 class EnvironmentConfig:
-    """Workspace bounds."""
-
     pos_x_min: float = 0.0
     pos_x_max: float = 20.0
     pos_y_min: float = 0.0
@@ -27,8 +25,6 @@ class EnvironmentConfig:
 
 @dataclass
 class DynamicsConfig:
-    """Robot dynamics limits (double-integrator)."""
-
     vel_min: float = -2.0
     vel_max: float = 2.0
     acc_min: float = -15.0
@@ -39,8 +35,6 @@ class DynamicsConfig:
 
 @dataclass
 class ScenarioConfig:
-    """Scenario generation parameters."""
-
     cluster_radius: float = 5.0
     cluster_margin: float = 1.5
     spacing: float = 1.0
@@ -48,10 +42,8 @@ class ScenarioConfig:
 
 @dataclass
 class ProblemConfig:
-    """Problem definition."""
-
     n_robots: int = MISSING
-    time_horizon: float | None = None  # None = auto-compute
+    time_horizon: float | None = None
     timestep: float = MISSING
     min_distance: float = MISSING
     robot_radius: float = 0.4
@@ -69,14 +61,10 @@ class ProblemConfig:
 
 @dataclass
 class SolverConfig:
-    """Solver parameters."""
-
-    # SCP convergence
     scp_tolerance_rel: float = 1e-3
     scp_tolerance_abs: float = 1e-3
     scp_max_iterations: int = 15
 
-    # OSQP settings
     osqp_max_iter: int = 10000
     osqp_eps_abs: float = 1e-3
     osqp_eps_rel: float = 1e-3
@@ -84,7 +72,6 @@ class SolverConfig:
     osqp_warm_start: bool = True
     osqp_verbose: bool = False
 
-    # ContactSolver specific
     max_contacts: int = 20
     max_contacts_per_pair: int = 10
     apply_velocity_bounds: bool = True
@@ -92,8 +79,6 @@ class SolverConfig:
 
 @dataclass
 class VisualizationConfig:
-    """Visualization settings."""
-
     show_plots: bool = True
     save_plots: bool = False
     output_dir: str = "outputs"
@@ -103,8 +88,6 @@ class VisualizationConfig:
 
 @dataclass
 class Config:
-    """Complete experiment configuration."""
-
     name: str = MISSING
     description: str | None = None
     random_seed: int | None = None
@@ -142,8 +125,6 @@ class Config:
 
 
 def load_config(name: str) -> Config:
-    """Load configuration by name from configs/ directory."""
-    # Check multiple possible locations
     possible_paths = [
         Path(__file__).parent.parent.parent.parent / "configs" / f"{name}.yaml",
         Path("configs") / f"{name}.yaml",
@@ -157,7 +138,6 @@ def load_config(name: str) -> Config:
 
 
 def get_default_config() -> Config:
-    """Get default configuration."""
     return Config(
         name="default",
         description="Default configuration",
@@ -171,7 +151,6 @@ def get_default_config() -> Config:
 
 
 def get_small_config() -> Config:
-    """Get small configuration for testing."""
     return Config(
         name="small",
         description="Small configuration for quick testing",

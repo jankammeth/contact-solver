@@ -1,4 +1,4 @@
-"""Lifted SCP solver with explicit position and velocity decision variables."""
+"""Lifted SCP solver with explicit position/velocity/acceleration variables."""
 
 import time
 
@@ -13,16 +13,16 @@ from .osqp_utils import OSQPSettings, solve_qp
 
 
 class LiftedSCP(Solver):
-    """Lifted SCP solver with explicit position/velocity/acceleration variables.
-    
-    Variable layout per robot with K timesteps:
-    Each timestep k has: p_x[k], p_y[k], v_x[k], v_y[k], a_x[k], a_y[k]
-    = 6 * K variables per robot
-    """
 
-    def __init__(self, config: Config, verbose: bool = False):
+    def __init__(
+        self,
+        config: Config,
+        obstacle_positions: np.ndarray | None = None,
+        verbose: bool = False,
+    ):
         super().__init__(config)
         self.verbose = verbose
+        self.obstacle_positions = obstacle_positions
 
         self.scp_tolerance_rel = config.solver.scp_tolerance_rel
         self.scp_tolerance_abs = config.solver.scp_tolerance_abs
@@ -37,31 +37,21 @@ class LiftedSCP(Solver):
         metrics = self._init_metrics()
         t_start = time.time()
 
-        # Setup timeframes (full trajectory for all robots)
-        self.robot_timeframes = [[0, self.K] for _ in range(self.N)]
-        self.K_i = [self.K for _ in range(self.N)]
-        self.start_times = [0 for _ in range(self.N)]
-
-        # Variable layout
-        self.vars_per_timestep = 6  # px, py, vx, vy, ax, ay
-        vars_per_robot = [self.vars_per_timestep * K_i for K_i in self.K_i]
-        self.robot_var_offsets = (
-            np.concatenate([[0], np.cumsum(vars_per_robot[:-1])])
-            if len(vars_per_robot) > 1
-            else np.array([0])
-        )
-        self.total_vars = sum(vars_per_robot)
+        self.vars_per_timestep = 6
+        self.vars_per_robot = self.vars_per_timestep * self.K
+        self.robot_var_offsets = np.arange(self.N) * self.vars_per_robot
+        self.total_vars = self.N * self.vars_per_robot
 
         if verbose:
             print(f"LiftedSCP: {self.total_vars} variables ({self.N} robots, {self.K} timesteps)")
+            if self.obstacle_positions is not None:
+                print(f"  {len(self.obstacle_positions)} obstacles")
 
-        # Build constraints
         t0 = time.time()
         self._build_dynamics_constraints()
         self._build_bound_constraints()
         metrics["timing"]["precompute_constraints_time"] = time.time() - t0
 
-        # Initial solve (no collision constraints)
         t0 = time.time()
         x, osqp_info = self._solve_initial()
         positions, velocities, accelerations = self._extract_trajectories(x)
@@ -71,8 +61,10 @@ class LiftedSCP(Solver):
         self._initial_guess_positions = [p.copy() for p in positions]
         self._initial_guess_velocities = [v.copy() for v in velocities]
 
-        # Check if already collision-free
-        collisions = detect_collisions(positions, self.R, self.robot_timeframes)
+        collisions = detect_collisions(
+            positions, self.R,
+            obstacle_positions=self.obstacle_positions
+        )
         if collisions.all_satisfied:
             if verbose:
                 print("Initial trajectory is collision-free")
@@ -80,26 +72,24 @@ class LiftedSCP(Solver):
                 positions, velocities, accelerations, metrics, t_start, "collision_free_initial"
             )
 
-        # SCP iterations
         t_scp = time.time()
-        prev_positions = positions
-        prev_velocities = velocities
-        prev_accelerations = accelerations
+        prev_pos = positions
+        prev_vel = velocities
+        prev_acc = accelerations
 
         for iteration in range(max_iterations):
             if verbose:
-                n_violations = collisions.n_violations
-                print(f"SCP Iteration {iteration + 1}: {n_violations} collisions")
+                n_rr = collisions.n_robot_robot_violations
+                n_ro = collisions.n_robot_obstacle_violations
+                print(f"SCP Iteration {iteration + 1}: {n_rr} robot-robot, {n_ro} robot-obstacle")
 
-            x, osqp_info = self._solve_with_collisions(
-                prev_positions, prev_velocities, prev_accelerations
-            )
+            x, osqp_info = self._solve_with_collisions(prev_pos, prev_vel, prev_acc)
             osqp_info["scp_iter"] = iteration + 1
             metrics["osqp_metrics"]["iterations"].append(osqp_info)
 
             positions, velocities, accelerations = self._extract_trajectories(x)
 
-            converged, rel_change, abs_change = self._check_convergence(prev_positions, positions)
+            converged, rel_change, abs_change = self._check_convergence(prev_pos, positions)
             if verbose:
                 print(f"  Position change - rel: {rel_change:.6f}, abs: {abs_change:.6f}")
 
@@ -112,10 +102,13 @@ class LiftedSCP(Solver):
                     positions, velocities, accelerations, metrics, t_start, "converged"
                 )
 
-            prev_positions = positions
-            prev_velocities = velocities
-            prev_accelerations = accelerations
-            collisions = detect_collisions(positions, self.R, self.robot_timeframes)
+            prev_pos = positions
+            prev_vel = velocities
+            prev_acc = accelerations
+            collisions = detect_collisions(
+                positions, self.R,
+                obstacle_positions=self.obstacle_positions
+            )
 
         metrics["timing"]["scp_iterations_time"] = time.time() - t_scp
         metrics["scp_iterations"] = max_iterations
@@ -124,7 +117,6 @@ class LiftedSCP(Solver):
         )
 
     def _get_var_indices(self, robot: int, timestep: int) -> dict:
-        """Get variable indices for a robot at a timestep."""
         base = self.robot_var_offsets[robot] + timestep * self.vars_per_timestep
         return {
             "px": base,
@@ -145,7 +137,6 @@ class LiftedSCP(Solver):
         }
 
     def _build_dynamics_constraints(self):
-        """Build sparse dynamics constraints."""
         h = self.h
         h2 = 0.5 * h * h
 
@@ -159,12 +150,8 @@ class LiftedSCP(Solver):
         vf = self.final_velocities.reshape(self.N, 2)
 
         for i in range(self.N):
-            K_i = self.K_i[i]
-
-            # k=0: Initial conditions
             idx_0 = self._get_var_indices(i, 0)
 
-            # Position: p[0] - 0.5*h²*a[0] = p0 + h*v0
             for d, (p_key, a_key) in enumerate([("px", "ax"), ("py", "ay")]):
                 rows.append(row_idx)
                 cols.append(idx_0[p_key])
@@ -179,7 +166,6 @@ class LiftedSCP(Solver):
                 upper.append(rhs)
                 row_idx += 1
 
-            # Velocity: v[0] - h*a[0] = v0
             for d, (v_key, a_key) in enumerate([("vx", "ax"), ("vy", "ay")]):
                 rows.append(row_idx)
                 cols.append(idx_0[v_key])
@@ -193,12 +179,10 @@ class LiftedSCP(Solver):
                 upper.append(v0[i, d])
                 row_idx += 1
 
-            # k=1...K-1: Dynamics
-            for k in range(1, K_i):
+            for k in range(1, self.K):
                 idx_k = self._get_var_indices(i, k)
                 idx_km1 = self._get_var_indices(i, k - 1)
 
-                # Position: p[k] - p[k-1] - h*v[k-1] - 0.5*h²*a[k] = 0
                 for p_key, v_key, a_key in [("px", "vx", "ax"), ("py", "vy", "ay")]:
                     rows.append(row_idx)
                     cols.append(idx_k[p_key])
@@ -220,7 +204,6 @@ class LiftedSCP(Solver):
                     upper.append(0.0)
                     row_idx += 1
 
-                # Velocity: v[k] - v[k-1] - h*a[k] = 0
                 for v_key, a_key in [("vx", "ax"), ("vy", "ay")]:
                     rows.append(row_idx)
                     cols.append(idx_k[v_key])
@@ -238,8 +221,7 @@ class LiftedSCP(Solver):
                     upper.append(0.0)
                     row_idx += 1
 
-            # Final conditions
-            idx_f = self._get_var_indices(i, K_i - 1)
+            idx_f = self._get_var_indices(i, self.K - 1)
 
             for d, key in enumerate(["px", "py"]):
                 rows.append(row_idx)
@@ -261,14 +243,12 @@ class LiftedSCP(Solver):
         self.dynamics_constraint = Constraint(matrix, np.array(lower), np.array(upper))
 
     def _build_bound_constraints(self):
-        """Build box constraints on velocities and accelerations."""
         rows, cols, vals = [], [], []
         lower, upper = [], []
         row_idx = 0
 
         for i in range(self.N):
-            K_i = self.K_i[i]
-            for k in range(K_i):
+            for k in range(self.K):
                 idx = self._get_var_indices(i, k)
 
                 for key in ["vx", "vy"]:
@@ -291,12 +271,10 @@ class LiftedSCP(Solver):
         self.bound_constraint = Constraint(matrix, np.array(lower), np.array(upper))
 
     def _build_cost_matrix(self) -> tuple[sp.csc_matrix, np.ndarray]:
-        """Build cost matrix for minimizing acceleration."""
         rows, cols, vals = [], [], []
 
         for i in range(self.N):
-            K_i = self.K_i[i]
-            for k in range(K_i):
+            for k in range(self.K):
                 idx = self._get_var_indices(i, k)
                 for key in ["ax", "ay"]:
                     rows.append(idx[key])
@@ -307,25 +285,16 @@ class LiftedSCP(Solver):
         q = np.zeros(self.total_vars)
         return P, q
 
-    def _build_collision_constraints(self, prev_positions: list[np.ndarray]) -> Constraint:
-        """Build linearized collision constraints."""
+    def _build_collision_constraints(self, prev_pos: list[np.ndarray]) -> Constraint:
         rows, cols, vals = [], [], []
         rhs_list = []
         row_idx = 0
 
         for i in range(self.N):
             for j in range(i + 1, self.N):
-                start_i, end_i = self.start_times[i], self.start_times[i] + self.K_i[i]
-                start_j, end_j = self.start_times[j], self.start_times[j] + self.K_i[j]
-                overlap_start = max(start_i, start_j)
-                overlap_end = min(end_i, end_j)
-
-                for k_global in range(overlap_start, overlap_end):
-                    k_i = k_global - self.start_times[i]
-                    k_j = k_global - self.start_times[j]
-
-                    pi_prev = prev_positions[i][k_i]
-                    pj_prev = prev_positions[j][k_j]
+                for k in range(self.K):
+                    pi_prev = prev_pos[i][k]
+                    pj_prev = prev_pos[j][k]
 
                     diff = pi_prev - pj_prev
                     dist = np.linalg.norm(diff)
@@ -335,8 +304,8 @@ class LiftedSCP(Solver):
                     else:
                         eta = diff / dist
 
-                    idx_i = self._get_var_indices(i, k_i)
-                    idx_j = self._get_var_indices(j, k_j)
+                    idx_i = self._get_var_indices(i, k)
+                    idx_j = self._get_var_indices(j, k)
 
                     rows.append(row_idx)
                     cols.append(idx_i["px"])
@@ -366,24 +335,60 @@ class LiftedSCP(Solver):
 
         return normalize_constraint(constraint)
 
+    def _build_obstacle_constraints(self, prev_pos: list[np.ndarray]) -> Constraint:
+        if self.obstacle_positions is None or len(self.obstacle_positions) == 0:
+            return Constraint(sp.csc_matrix((0, self.total_vars)), np.array([]), np.array([]))
+
+        rows, cols, vals = [], [], []
+        rhs_list = []
+        row_idx = 0
+
+        for i in range(self.N):
+            for k in range(self.K):
+                pi_prev = prev_pos[i][k]
+                idx_i = self._get_var_indices(i, k)
+
+                for j, obs in enumerate(self.obstacle_positions):
+                    diff = pi_prev - obs
+                    dist = np.linalg.norm(diff)
+
+                    if dist < 1e-6:
+                        angle = np.random.uniform(0, 2 * np.pi)
+                        eta = np.array([np.cos(angle), np.sin(angle)])
+                    else:
+                        eta = diff / dist
+
+                    rows.append(row_idx)
+                    cols.append(idx_i["px"])
+                    vals.append(eta[0])
+
+                    rows.append(row_idx)
+                    cols.append(idx_i["py"])
+                    vals.append(eta[1])
+
+                    rhs = self.R + (eta @ (pi_prev - obs) - dist)
+                    rhs_list.append(rhs)
+                    row_idx += 1
+
+        if row_idx == 0:
+            return Constraint(sp.csc_matrix((0, self.total_vars)), np.array([]), np.array([]))
+
+        matrix = sp.coo_matrix((vals, (rows, cols)), shape=(row_idx, self.total_vars)).tocsc()
+        constraint = Constraint(matrix, np.array(rhs_list), np.full(row_idx, np.inf))
+
+        return normalize_constraint(constraint)
+
     def _solve_initial(self) -> tuple[np.ndarray, dict]:
         P, q = self._build_cost_matrix()
         constraints = [self.dynamics_constraint, self.bound_constraint]
         x, metrics = solve_qp(P, q, constraints, settings=self.osqp_settings)
         return x, metrics
 
-    def _build_warm_start_vector(
-        self,
-        positions: list[np.ndarray],
-        velocities: list[np.ndarray],
-        accelerations: list[np.ndarray],
-    ) -> np.ndarray:
-        """Build OSQP warm start vector."""
+    def _build_warm_start(self, positions, velocities, accelerations) -> np.ndarray:
         x = np.zeros(self.total_vars)
 
         for i in range(self.N):
-            K_i = self.K_i[i]
-            for k in range(K_i):
+            for k in range(self.K):
                 idx = self._get_var_indices(i, k)
                 x[idx["px"]] = positions[i][k, 0]
                 x[idx["py"]] = positions[i][k, 1]
@@ -394,35 +399,31 @@ class LiftedSCP(Solver):
 
         return x
 
-    def _solve_with_collisions(
-        self,
-        prev_positions: list[np.ndarray],
-        prev_velocities: list[np.ndarray],
-        prev_accelerations: list[np.ndarray],
-    ) -> tuple[np.ndarray, dict]:
+    def _solve_with_collisions(self, prev_pos, prev_vel, prev_acc) -> tuple[np.ndarray, dict]:
         P, q = self._build_cost_matrix()
-        collision_constraint = self._build_collision_constraints(prev_positions)
-        constraints = [self.dynamics_constraint, self.bound_constraint, collision_constraint]
+        coll_constr = self._build_collision_constraints(prev_pos)
+        obs_constr = self._build_obstacle_constraints(prev_pos)
+        constraints = [
+            self.dynamics_constraint,
+            self.bound_constraint,
+            coll_constr,
+            obs_constr,
+        ]
 
-        warm_start = self._build_warm_start_vector(
-            prev_positions, prev_velocities, prev_accelerations
-        )
+        warm_start = self._build_warm_start(prev_pos, prev_vel, prev_acc)
 
         x, metrics = solve_qp(P, q, constraints, warm_start=warm_start, settings=self.osqp_settings)
         return x, metrics
 
-    def _extract_trajectories(
-        self, x: np.ndarray
-    ) -> tuple[list[np.ndarray], list[np.ndarray], list[np.ndarray]]:
+    def _extract_trajectories(self, x: np.ndarray):
         positions, velocities, accelerations = [], [], []
 
         for i in range(self.N):
-            K_i = self.K_i[i]
-            pos_i = np.zeros((K_i, 2))
-            vel_i = np.zeros((K_i, 2))
-            acc_i = np.zeros((K_i, 2))
+            pos_i = np.zeros((self.K, 2))
+            vel_i = np.zeros((self.K, 2))
+            acc_i = np.zeros((self.K, 2))
 
-            for k in range(K_i):
+            for k in range(self.K):
                 idx = self._get_var_indices(i, k)
                 pos_i[k] = [x[idx["px"]], x[idx["py"]]]
                 vel_i[k] = [x[idx["vx"]], x[idx["vy"]]]
@@ -434,16 +435,16 @@ class LiftedSCP(Solver):
 
         return positions, velocities, accelerations
 
-    def _check_convergence(self, prev_positions, positions):
+    def _check_convergence(self, prev_pos, positions):
         max_abs_change = 0.0
         total_norm_sq = 0.0
         total_diff_sq = 0.0
 
-        for prev_pos, pos in zip(prev_positions, positions, strict=True):
-            diff = pos - prev_pos
+        for prev, pos in zip(prev_pos, positions, strict=True):
+            diff = pos - prev
             max_abs_change = max(max_abs_change, np.abs(diff).max())
             total_diff_sq += np.sum(diff**2)
-            total_norm_sq += np.sum(prev_pos**2)
+            total_norm_sq += np.sum(prev**2)
 
         rel_change = np.sqrt(total_diff_sq) / max(np.sqrt(total_norm_sq), 1e-10)
         converged = (rel_change <= self.scp_tolerance_rel) and (
@@ -466,10 +467,14 @@ class LiftedSCP(Solver):
         metrics["converged"] = reason in ("converged", "collision_free_initial")
         metrics["convergence_reason"] = reason
 
-        collisions = detect_collisions(positions, self.R, self.robot_timeframes)
+        collisions = detect_collisions(
+            positions, self.R,
+            obstacle_positions=self.obstacle_positions
+        )
         metrics["collision_check"] = {
             "all_satisfied": collisions.all_satisfied,
-            "n_violations": collisions.n_violations,
+            "n_robot_robot_violations": collisions.n_robot_robot_violations,
+            "n_robot_obstacle_violations": collisions.n_robot_obstacle_violations,
             "worst_violation": collisions.worst_violation,
         }
 

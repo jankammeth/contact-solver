@@ -4,7 +4,6 @@ import numpy as np
 
 
 def cubic_coefficients(p0, v0, pf, vf, T):
-    """Compute cubic coefficients: p(t) = a + b*t + c*t^2 + d*t^3"""
     if T < 1e-10:
         return p0.copy(), v0.copy(), np.zeros(2), np.zeros(2)
     a = p0.copy()
@@ -15,30 +14,25 @@ def cubic_coefficients(p0, v0, pf, vf, T):
 
 
 def eval_cubic(coeffs, t):
-    """Evaluate position at time t."""
     a, b, c, d = coeffs
     return a + b * t + c * t**2 + d * t**3
 
 
 def eval_cubic_vel(coeffs, t):
-    """Evaluate velocity at time t."""
     a, b, c, d = coeffs
     return b + 2 * c * t + 3 * d * t**2
 
 
 def eval_cubic_acc(coeffs, t):
-    """Evaluate acceleration at time t."""
     a, b, c, d = coeffs
     return 2 * c + 6 * d * t
 
 
 def eval_cubic_jerk(coeffs):
-    """Evaluate jerk (constant for cubic)."""
     return 6 * coeffs[3]
 
 
 def find_distance_minima(r_coeffs, T_seg, t_offset=0.0):
-    """Find local minima of ||r(t)|| for cubic r(t). Returns list of (time, distance)."""
     a, b, c, d = r_coeffs
     if T_seg < 1e-10:
         return []

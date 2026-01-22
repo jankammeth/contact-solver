@@ -11,8 +11,10 @@ from contact_solver import (
     generate_random_positions,
     generate_swap_positions,
     generate_line_positions,
+    generate_random_obstacles,
     visualize_trajectories,
     visualize_comparison,
+    visualize_time_snapshots,
 )
 from contact_solver.config import (
     DynamicsConfig,
@@ -161,6 +163,19 @@ class TestCollisionDetection:
         assert not report.all_satisfied
         assert report.n_violations > 0
 
+    def test_detect_obstacle_collision(self):
+        """Test detection catches robot-obstacle collision."""
+        K = 50
+        # Robot moves through an obstacle
+        positions = [
+            np.column_stack([np.linspace(0, 5, K), np.zeros(K)]),
+        ]
+        obstacles = np.array([[2.5, 0.0]])  # Obstacle in the middle of path
+        
+        report = detect_collisions(positions, min_distance=0.5, obstacle_positions=obstacles)
+        assert not report.all_satisfied
+        assert report.n_robot_obstacle_violations > 0
+
 
 class TestVisualization:
     """Test visualization functions don't crash."""
@@ -179,6 +194,26 @@ class TestVisualization:
         fig, ax = visualize_trajectories(
             result["trajectories"]["positions"],
             config,
+            show=False,
+        )
+        assert fig is not None
+
+    def test_visualize_trajectories_with_obstacles(self):
+        """Test trajectory visualization with obstacles."""
+        config = make_config(n_robots=2)
+        initial, final = generate_random_positions(config)
+        obstacles = np.array([[5.0, 5.0], [10.0, 10.0]])
+
+        solver = ContactSolver(config, verbose=False)
+        solver.set_initial_states(initial)
+        solver.set_final_states(final)
+        result = solver.generate_trajectories()
+
+        # Should not raise
+        fig, ax = visualize_trajectories(
+            result["trajectories"]["positions"],
+            config,
+            obstacle_positions=obstacles,
             show=False,
         )
         assert fig is not None
@@ -207,6 +242,85 @@ class TestVisualization:
             show=False,
         )
         assert fig is not None
+
+    def test_visualize_time_snapshots(self):
+        """Test time snapshot visualization."""
+        config = make_config(n_robots=2)
+        initial, final = generate_random_positions(config)
+
+        solver = ContactSolver(config, verbose=False)
+        solver.set_initial_states(initial)
+        solver.set_final_states(final)
+        result = solver.generate_trajectories()
+
+        # Should not raise
+        fig, axes = visualize_time_snapshots(
+            result["trajectories"]["positions"],
+            config,
+            n_snapshots=5,
+            show=False,
+        )
+        assert fig is not None
+        assert len(axes) == 5
+
+    def test_visualize_time_snapshots_with_obstacles(self):
+        """Test time snapshot visualization with obstacles."""
+        config = make_config(n_robots=2)
+        initial, final = generate_random_positions(config)
+        obstacles = np.array([[5.0, 5.0], [10.0, 10.0]])
+
+        solver = ContactSolver(config, verbose=False)
+        solver.set_initial_states(initial)
+        solver.set_final_states(final)
+        result = solver.generate_trajectories()
+
+        # Should not raise
+        fig, axes = visualize_time_snapshots(
+            result["trajectories"]["positions"],
+            config,
+            obstacle_positions=obstacles,
+            n_snapshots=3,
+            show=False,
+        )
+        assert fig is not None
+
+
+class TestObstacles:
+    """Test obstacle avoidance."""
+
+    def test_lifted_scp_with_obstacles(self):
+        """Test LiftedSCP avoids obstacles."""
+        config = make_config(n_robots=2, time_horizon=5.0)
+        # Simple scenario: two robots moving horizontally
+        initial = np.array([[2.0, 7.0], [2.0, 8.0]])
+        final = np.array([[13.0, 7.0], [13.0, 8.0]])
+        # Obstacle in the middle but off to the side - shouldn't block
+        obstacles = np.array([[7.5, 5.0]])
+
+        solver = LiftedSCP(config, obstacle_positions=obstacles, verbose=False)
+        solver.set_initial_states(initial)
+        solver.set_final_states(final)
+        result = solver.generate_trajectories()
+
+        assert result["metrics"]["converged"]
+        # Check no obstacle violations
+        assert result["metrics"]["collision_check"]["n_robot_obstacle_violations"] == 0
+
+    def test_contact_solver_with_obstacles(self):
+        """Test ContactSolver avoids obstacles."""
+        config = make_config(n_robots=2, time_horizon=5.0)
+        # Simple scenario
+        initial = np.array([[2.0, 7.0], [2.0, 8.0]])
+        final = np.array([[13.0, 7.0], [13.0, 8.0]])
+        obstacles = np.array([[7.5, 5.0]])
+
+        solver = ContactSolver(config, obstacle_positions=obstacles, verbose=False)
+        solver.set_initial_states(initial)
+        solver.set_final_states(final)
+        result = solver.generate_trajectories()
+
+        # Check metrics
+        assert "min_obstacle_distance" in result["metrics"]
 
 
 class TestEdgeCases:
@@ -254,3 +368,24 @@ class TestEdgeCases:
         result = solver.generate_trajectories()
 
         assert "trajectories" in result
+
+    def test_nonzero_initial_velocity(self):
+        """Test ContactSolver handles nonzero initial/final velocities."""
+        config = make_config(n_robots=2, time_horizon=5.0)
+        initial = np.array([[0.0, 0.0], [4.0, 0.0]])
+        final = np.array([[4.0, 0.0], [0.0, 0.0]])
+        v0 = np.array([[1.0, 0.0], [-1.0, 0.0]])  # Moving toward each other
+        vf = np.array([[0.0, 0.0], [0.0, 0.0]])  # Come to rest
+
+        solver = ContactSolver(config, verbose=False)
+        solver.set_initial_states(initial, v0)
+        solver.set_final_states(final, vf)
+        result = solver.generate_trajectories()
+
+        # Should handle velocity BCs correctly
+        assert "trajectories" in result
+
+        # Verify initial velocities are close to specified
+        vel = result["trajectories"]["velocities"]
+        np.testing.assert_array_almost_equal(vel[0][0], v0[0], decimal=1)
+        np.testing.assert_array_almost_equal(vel[1][0], v0[1], decimal=1)

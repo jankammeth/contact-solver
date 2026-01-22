@@ -1,6 +1,6 @@
 name: small
 description: Small configuration for quick testing
-random_seed: 42
+random_seed: 40
 
 problem:
   n_robots: 3
@@ -10,9 +10,9 @@ problem:
   robot_radius: 0.25
 
   environment:
-    pos_x_min: 0.0
+    pos_x_min: -15.0
     pos_x_max: 15.0
-    pos_y_min: 0.0
+    pos_y_min: -15.0
     pos_y_max: 15.0
 
   dynamics:
@@ -24,7 +24,7 @@ problem:
     jerk_max: 30.0
 
   scenario:
-    cluster_radius: 3.0
+    cluster_radius: 1.0
     cluster_margin: 1.0
     spacing: 0.8
 

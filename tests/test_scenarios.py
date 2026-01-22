@@ -3,7 +3,12 @@
 import numpy as np
 import pytest
 
-from contact_solver import generate_random_positions, generate_swap_positions, generate_line_positions
+from contact_solver import (
+    generate_random_positions,
+    generate_swap_positions,
+    generate_line_positions,
+    generate_random_obstacles,
+)
 from contact_solver.config import (
     Config,
     DynamicsConfig,
@@ -23,13 +28,13 @@ def get_test_config(n_robots=5):
             n_robots=n_robots,
             time_horizon=5.0,
             timestep=0.2,
-            min_distance=0.8,
-            robot_radius=0.4,
+            min_distance=0.5,
+            robot_radius=0.25,
             environment=EnvironmentConfig(
                 pos_x_min=0.0, pos_x_max=20.0, pos_y_min=0.0, pos_y_max=20.0
             ),
             dynamics=DynamicsConfig(),
-            scenario=ScenarioConfig(cluster_radius=4.0, cluster_margin=1.5, spacing=1.0),
+            scenario=ScenarioConfig(cluster_radius=4.0, cluster_margin=1.5, spacing=0.8),
         ),
         solver=SolverConfig(),
         visualization=VisualizationConfig(show_plots=False),
@@ -70,6 +75,23 @@ class TestRandomPositions:
         initial2, _ = generate_random_positions(config, seed=456)
 
         assert not np.allclose(initial1, initial2)
+
+    def test_overlapping_clusters(self):
+        """Initial and final positions should be in same region (workspace center)."""
+        config = get_test_config(n_robots=5)
+        initial, final = generate_random_positions(config, seed=42)
+
+        env = config.problem.environment
+        cx = (env.pos_x_min + env.pos_x_max) / 2
+        cy = (env.pos_y_min + env.pos_y_max) / 2
+        center = np.array([cx, cy])
+
+        # Both clusters should be centered near workspace center
+        initial_center = np.mean(initial, axis=0)
+        final_center = np.mean(final, axis=0)
+
+        assert np.linalg.norm(initial_center - center) < config.problem.scenario.cluster_radius + 1
+        assert np.linalg.norm(final_center - center) < config.problem.scenario.cluster_radius + 1
 
 
 class TestSwapPositions:
@@ -112,3 +134,48 @@ class TestLinePositions:
         initial, final = generate_line_positions(config)
 
         np.testing.assert_array_almost_equal(initial, final[::-1])
+
+
+class TestRandomObstacles:
+    def test_correct_shape(self):
+        config = get_test_config(n_robots=3)
+        obstacles = generate_random_obstacles(config, n_obstacles=5, seed=42)
+
+        assert obstacles.shape == (5, 2)
+
+    def test_within_bounds(self):
+        config = get_test_config()
+        obstacles = generate_random_obstacles(config, n_obstacles=10, seed=42)
+
+        env = config.problem.environment
+        R = config.problem.min_distance
+        assert np.all(obstacles[:, 0] >= env.pos_x_min + R)
+        assert np.all(obstacles[:, 0] <= env.pos_x_max - R)
+        assert np.all(obstacles[:, 1] >= env.pos_y_min + R)
+        assert np.all(obstacles[:, 1] <= env.pos_y_max - R)
+
+    def test_avoids_robot_positions(self):
+        config = get_test_config(n_robots=3)
+        initial, final = generate_random_positions(config, seed=42)
+        obstacles = generate_random_obstacles(
+            config, n_obstacles=5, seed=42,
+            initial_positions=initial, final_positions=final
+        )
+
+        R = config.problem.min_distance
+        clearance = 2 * R + 0.1
+
+        # Check obstacles don't overlap with robot positions
+        for obs in obstacles:
+            for pos in initial:
+                assert np.linalg.norm(obs - pos) >= clearance - 0.01
+            for pos in final:
+                assert np.linalg.norm(obs - pos) >= clearance - 0.01
+
+    def test_reproducible_with_seed(self):
+        config = get_test_config()
+
+        obs1 = generate_random_obstacles(config, n_obstacles=5, seed=123)
+        obs2 = generate_random_obstacles(config, n_obstacles=5, seed=123)
+
+        np.testing.assert_array_equal(obs1, obs2)
