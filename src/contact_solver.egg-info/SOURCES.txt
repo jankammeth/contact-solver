@@ -13,7 +13,7 @@ src/contact_solver.egg-info/requires.txt
 src/contact_solver.egg-info/top_level.txt
 src/contact_solver/cli/__init__.py
 src/contact_solver/cli/compare_solvers.py
-src/contact_solver/cli/sweep_compare.py
+src/contact_solver/cli/sweep_n.py
 src/contact_solver/scripts/__init__.py
 src/contact_solver/solvers/__init__.py
 src/contact_solver/solvers/base.py

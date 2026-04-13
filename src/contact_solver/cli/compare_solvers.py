@@ -116,7 +116,10 @@ def main():
     print(f"  SCP iterations: {scp_iters}")
     print(f"  Converged: {scp_metrics['converged']} ({scp_metrics['convergence_reason']})")
     print(f"  Min distance: {scp_min_dist:.4f}m {'✓' if scp_min_dist >= R - 0.01 else '✗'}")
-    print(f"  Max velocity: {scp_max_vel:.4f} m/s {'✓' if scp_max_vel <= v_max + 0.01 else '✗'}")
+    if v_max is not None:
+        print(f"  Max velocity: {scp_max_vel:.4f} m/s {'✓' if scp_max_vel <= v_max + 0.01 else '✗'}")
+    else:
+        print(f"  Max velocity: {scp_max_vel:.4f} m/s (unconstrained)")
     print(f"  Acceleration cost: {scp_cost:.4f}")
 
     # ==================== ContactSolver ====================
@@ -143,7 +146,10 @@ def main():
     print(f"  Contacts: {num_contacts}")
     print(f"  Converged: {contact_metrics['converged']} ({contact_metrics['convergence_reason']})")
     print(f"  Min distance: {contact_min_dist:.4f}m {'✓' if contact_min_dist >= R - 0.01 else '✗'}")
-    print(f"  Max velocity: {contact_max_vel:.4f} m/s {'✓' if contact_max_vel <= v_max + 0.01 else '✗'}")
+    if v_max is not None:
+        print(f"  Max velocity: {contact_max_vel:.4f} m/s {'✓' if contact_max_vel <= v_max + 0.01 else '✗'}")
+    else:
+        print(f"  Max velocity: {contact_max_vel:.4f} m/s (unconstrained)")
     print(f"  Acceleration cost: {contact_cost:.4f}")
     if contact_metrics.get("num_velocity_arcs", 0) > 0:
         print(f"  Velocity arcs: {contact_metrics['num_velocity_arcs']}")

@@ -18,8 +18,8 @@ def generate_random_positions(
     env = config.problem.environment
     scenario = config.problem.scenario
 
-    cx = (env.pos_x_min + env.pos_x_max) / 2
-    cy = (env.pos_y_min + env.pos_y_max) / 2
+    cx = ((env.pos_x_min or 0.0) + (env.pos_x_max or 0.0)) / 2
+    cy = ((env.pos_y_min or 0.0) + (env.pos_y_max or 0.0)) / 2
     center = np.array([cx, cy])
 
     radius = scenario.cluster_radius
@@ -76,8 +76,8 @@ def generate_swap_positions(
     env = config.problem.environment
     scenario = config.problem.scenario
 
-    cx = (env.pos_x_min + env.pos_x_max) / 2
-    cy = (env.pos_y_min + env.pos_y_max) / 2
+    cx = ((env.pos_x_min or 0.0) + (env.pos_x_max or 0.0)) / 2
+    cy = ((env.pos_y_min or 0.0) + (env.pos_y_max or 0.0)) / 2
 
     radius = scenario.cluster_radius
 
@@ -120,8 +120,12 @@ def generate_random_obstacles(
 
     for _ in range(n_obstacles):
         for attempt in range(max_attempts):
-            x = np.random.uniform(env.pos_x_min + R, env.pos_x_max - R)
-            y = np.random.uniform(env.pos_y_min + R, env.pos_y_max - R)
+            x_lo = (env.pos_x_min + R) if env.pos_x_min is not None else -10.0
+            x_hi = (env.pos_x_max - R) if env.pos_x_max is not None else 10.0
+            y_lo = (env.pos_y_min + R) if env.pos_y_min is not None else -10.0
+            y_hi = (env.pos_y_max - R) if env.pos_y_max is not None else 10.0
+            x = np.random.uniform(x_lo, x_hi)
+            y = np.random.uniform(y_lo, y_hi)
             pos = np.array([x, y])
 
             valid = True

@@ -6,8 +6,6 @@ from dataclasses import dataclass, field
 import numpy as np
 from scipy.spatial import cKDTree
 
-COLLISION_DETECTION_TOLERANCE = 1e-2
-
 
 @dataclass
 class CollisionReport:
@@ -42,6 +40,7 @@ def detect_collisions(
     min_distance: float,
     robot_timeframes: list[list[int]] | None = None,
     obstacle_positions: np.ndarray | None = None,
+    detection_tol: float = 0.0,
 ) -> CollisionReport:
     report = CollisionReport()
     t_start = time.perf_counter()
@@ -56,15 +55,15 @@ def detect_collisions(
 
     if is_uniform and robot_timeframes is None:
         trajectories = np.array(positions_list)
-        report.robot_robot = _detect_all_timesteps(trajectories, min_distance)
+        report.robot_robot = _detect_all_timesteps(trajectories, min_distance, detection_tol)
     else:
         report.robot_robot = _detect_with_timeframes(
-            positions_list, min_distance, robot_timeframes
+            positions_list, min_distance, robot_timeframes, detection_tol
         )
 
     if obstacle_positions is not None and len(obstacle_positions) > 0:
         report.robot_obstacle = _detect_robot_obstacle(
-            positions_list, obstacle_positions, min_distance, robot_timeframes
+            positions_list, obstacle_positions, min_distance, robot_timeframes, detection_tol
         )
 
     report.timing["total"] = time.perf_counter() - t_start
@@ -74,9 +73,10 @@ def detect_collisions(
 def _detect_all_timesteps(
     trajectories: np.ndarray,
     min_distance: float,
+    detection_tol: float = 0.0,
 ) -> list[tuple[int, int, int, float]]:
     N, K, _ = trajectories.shape
-    threshold = min_distance - COLLISION_DETECTION_TOLERANCE
+    threshold = min_distance - detection_tol
 
     violations = []
 
@@ -103,10 +103,11 @@ def _detect_with_timeframes(
     positions: list[np.ndarray],
     min_distance: float,
     robot_timeframes: list[list[int]] | None,
+    detection_tol: float = 0.0,
 ) -> list[tuple[int, int, int, float]]:
     from collections import defaultdict
 
-    threshold = min_distance - COLLISION_DETECTION_TOLERANCE
+    threshold = min_distance - detection_tol
 
     if robot_timeframes is None:
         robot_timeframes = [[0, len(positions[i])] for i in range(len(positions))]
@@ -151,8 +152,9 @@ def _detect_robot_obstacle(
     obstacle_positions: np.ndarray,
     min_distance: float,
     robot_timeframes: list[list[int]] | None,
+    detection_tol: float = 0.0,
 ) -> list[tuple[int, int, int, float]]:
-    threshold = min_distance - COLLISION_DETECTION_TOLERANCE
+    threshold = min_distance - detection_tol
     violations = []
 
     N = len(positions)

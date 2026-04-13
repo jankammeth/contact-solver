@@ -1,3 +1,3 @@
 [console_scripts]
 compare-solvers = contact_solver.cli.compare_solvers:main
-sweep-compare = contact_solver.cli.sweep_compare:main
+sweep-n = contact_solver.cli.sweep_n:main

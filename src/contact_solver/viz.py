@@ -52,6 +52,32 @@ def _draw_obstacles(ax, obstacle_positions: np.ndarray, radius: float):
         ax.add_patch(circle)
 
 
+def _env_bounds(env, positions: list[np.ndarray] | None = None, margin: float = 1.0):
+    """Get plot bounds from env config, falling back to trajectory data."""
+    if env.pos_x_min is not None and env.pos_x_max is not None:
+        x_min, x_max = env.pos_x_min, env.pos_x_max
+    elif positions is not None:
+        all_x = np.concatenate([p[:, 0] for p in positions])
+        x_min, x_max = all_x.min() - margin, all_x.max() + margin
+    else:
+        x_min, x_max = -10.0, 10.0
+
+    if env.pos_y_min is not None and env.pos_y_max is not None:
+        y_min, y_max = env.pos_y_min, env.pos_y_max
+    elif positions is not None:
+        all_y = np.concatenate([p[:, 1] for p in positions])
+        y_min, y_max = all_y.min() - margin, all_y.max() + margin
+    else:
+        y_min, y_max = -10.0, 10.0
+
+    return x_min, x_max, y_min, y_max
+
+
+def _has_env_bounds(env) -> bool:
+    """Check if environment has explicit position limits."""
+    return all(v is not None for v in [env.pos_x_min, env.pos_x_max, env.pos_y_min, env.pos_y_max])
+
+
 def visualize_trajectories(
     positions: list[np.ndarray],
     config: Config,
@@ -71,18 +97,21 @@ def visualize_trajectories(
     fig, ax = plt.subplots(figsize=config.visualization.figsize)
     ax.set_aspect("equal")
 
-    ax.add_patch(
-        Rectangle(
-            (env.pos_x_min, env.pos_y_min),
-            env.pos_x_max - env.pos_x_min,
-            env.pos_y_max - env.pos_y_min,
-            linewidth=2,
-            edgecolor="black",
-            facecolor="none",
-            linestyle="--",
-            alpha=0.7,
+    x_min, x_max, y_min, y_max = _env_bounds(env, positions)
+
+    if _has_env_bounds(env):
+        ax.add_patch(
+            Rectangle(
+                (x_min, y_min),
+                x_max - x_min,
+                y_max - y_min,
+                linewidth=2,
+                edgecolor="black",
+                facecolor="none",
+                linestyle="--",
+                alpha=0.7,
+            )
         )
-    )
 
     if obstacle_positions is not None and len(obstacle_positions) > 0:
         _draw_obstacles(ax, obstacle_positions, min_distance)
@@ -104,8 +133,8 @@ def visualize_trajectories(
             edgecolors="black", linewidths=0.5, zorder=4
         )
 
-    ax.set_xlim(env.pos_x_min - 1, env.pos_x_max + 1)
-    ax.set_ylim(env.pos_y_min - 1, env.pos_y_max + 1)
+    ax.set_xlim(x_min - 1, x_max + 1)
+    ax.set_ylim(y_min - 1, y_max + 1)
     ax.set_xlabel(r"$p_x$ [m]")
     ax.set_ylabel(r"$p_y$ [m]")
     ax.set_title(title)
@@ -152,25 +181,27 @@ def visualize_time_snapshots(
         t = frame_idx * timestep
 
         ax.set_aspect("equal")
-        ax.set_xlim(env.pos_x_min - 0.5, env.pos_x_max + 0.5)
-        ax.set_ylim(env.pos_y_min - 0.5, env.pos_y_max + 0.5)
+        x_min, x_max, y_min, y_max = _env_bounds(env, positions, margin=0.5)
+        ax.set_xlim(x_min - 0.5, x_max + 0.5)
+        ax.set_ylim(y_min - 0.5, y_max + 0.5)
         ax.set_title(rf"$t = {t:.2f}$ s")
 
         ax.set_xticks([])
         ax.set_yticks([])
 
-        ax.add_patch(
-            Rectangle(
-                (env.pos_x_min, env.pos_y_min),
-                env.pos_x_max - env.pos_x_min,
-                env.pos_y_max - env.pos_y_min,
-                linewidth=1,
-                edgecolor="black",
-                facecolor="none",
-                linestyle="--",
-                alpha=0.5,
+        if _has_env_bounds(env):
+            ax.add_patch(
+                Rectangle(
+                    (x_min, y_min),
+                    x_max - x_min,
+                    y_max - y_min,
+                    linewidth=1,
+                    edgecolor="black",
+                    facecolor="none",
+                    linestyle="--",
+                    alpha=0.5,
+                )
             )
-        )
 
         if obstacle_positions is not None and len(obstacle_positions) > 0:
             _draw_obstacles(ax, obstacle_positions, min_distance)
@@ -261,7 +292,27 @@ def visualize_comparison(
 
     colors = generate_colors(N)
 
-    fig, axes = plt.subplots(4, 2, figsize=(14, 10))
+    fig, axes = plt.subplots(6, 2, figsize=(14, 14))
+
+    def compute_jerk(accelerations: list[np.ndarray], dt: float) -> list[np.ndarray]:
+        jerks = []
+        for acc in accelerations:
+            if len(acc) < 2:
+                jerks.append(np.zeros((0, acc.shape[1])))
+            else:
+                jerks.append(np.diff(acc, axis=0) / dt)
+        return jerks
+
+    dt_cont = T / max(K_cont - 1, 1)
+    scp_jerk = compute_jerk(scp_acc, h)
+    cont_jerk = compute_jerk(cont_acc, dt_cont)
+    times_scp_jerk = times_scp[1:]
+    times_cont_jerk = times_cont[1:]
+
+    scp_snap = compute_jerk(scp_jerk, h)
+    cont_snap = compute_jerk(cont_jerk, dt_cont)
+    times_scp_snap = times_scp_jerk[1:]
+    times_cont_snap = times_cont_jerk[1:]
 
     for col, (label, comp) in enumerate([(r"$p_x$ [m]", 0), (r"$p_y$ [m]", 1)]):
         ax = axes[0, col]
@@ -295,7 +346,39 @@ def visualize_comparison(
         ax.set_ylabel(label)
         ax.grid(True, alpha=0.3)
 
-    ax = axes[3, 0]
+    for col, (label, comp) in enumerate([(r"$j_x$ [m/s³]", 0), (r"$j_y$ [m/s³]", 1)]):
+        ax = axes[3, col]
+        for i in range(N):
+            ax.plot(times_scp_jerk, scp_jerk[i][:, comp], color=colors[i], linewidth=1.5,
+                    linestyle="-", marker=".", markersize=2, alpha=0.8)
+            ax.plot(times_cont_jerk, cont_jerk[i][:, comp], color=colors[i], linewidth=1.5,
+                    linestyle="--", alpha=0.6)
+        ax.set_ylabel(label)
+        ax.grid(True, alpha=0.3)
+
+    for col, (label, comp) in enumerate([(r"$s_x$ [m/s⁴]", 0), (r"$s_y$ [m/s⁴]", 1)]):
+        ax = axes[4, col]
+        for i in range(N):
+            ax.plot(times_scp_snap, scp_snap[i][:, comp], color=colors[i], linewidth=1.5,
+                    linestyle="-", marker=".", markersize=2, alpha=0.8)
+            ax.plot(times_cont_snap, cont_snap[i][:, comp], color=colors[i], linewidth=1.5,
+                    linestyle="--", alpha=0.6)
+
+        scp_snap_vals = [snap[:, comp] for snap in scp_snap if snap.size > 0]
+        if scp_snap_vals:
+            y = np.concatenate(scp_snap_vals)
+            y_min = float(np.min(y))
+            y_max = float(np.max(y))
+            if y_max > y_min:
+                pad = 0.1 * (y_max - y_min)
+            else:
+                pad = max(1e-3, 0.1 * max(abs(y_min), abs(y_max), 1.0))
+            ax.set_ylim(y_min - pad, y_max + pad)
+
+        ax.set_ylabel(label)
+        ax.grid(True, alpha=0.3)
+
+    ax = axes[5, 0]
 
     def compute_distances(positions):
         N = len(positions)
@@ -327,7 +410,7 @@ def visualize_comparison(
     ax.set_ylim(bottom=0)
     ax.grid(True, alpha=0.3)
 
-    ax = axes[3, 1]
+    ax = axes[5, 1]
     ax.set_aspect("equal")
 
     if obstacle_positions is not None and len(obstacle_positions) > 0:

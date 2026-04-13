@@ -63,7 +63,7 @@ def build_dynamics_constraints(
     h: float,
     initial_states: dict[str, np.ndarray],
     final_states: dict[str, np.ndarray],
-    box_limits: dict[str, float | np.ndarray],
+    box_limits: dict[str, float | np.ndarray | None],
     dims: int = 2,
     free_final_velocity: bool = False,
     normalize: bool = False,
@@ -74,50 +74,80 @@ def build_dynamics_constraints(
     pf = final_states["position"]
     vf = final_states["velocity"]
 
-    jerk_min = box_limits.get("jerk_min", -np.inf)
-    jerk_max = box_limits.get("jerk_max", np.inf)
-    acc_min = box_limits.get("acc_min", -np.inf)
-    acc_max = box_limits.get("acc_max", np.inf)
-    vel_min = box_limits.get("vel_min", -np.inf)
-    vel_max = box_limits.get("vel_max", np.inf)
-    pos_min = box_limits.get("pos_min", np.array([-np.inf] * dims))
-    pos_max = box_limits.get("pos_max", np.array([np.inf] * dims))
+    jerk_min = box_limits.get("jerk_min")
+    jerk_max = box_limits.get("jerk_max")
+    acc_min = box_limits.get("acc_min")
+    acc_max = box_limits.get("acc_max")
+    vel_min = box_limits.get("vel_min")
+    vel_max = box_limits.get("vel_max")
+    pos_min = box_limits.get("pos_min")
+    pos_max = box_limits.get("pos_max")
 
-    jerk_constraints = []
-    accel_constraints = []
+    has_jerk = jerk_min is not None or jerk_max is not None
+    has_accel = acc_min is not None or acc_max is not None
+    # Velocity and position blocks are always needed for terminal constraints
+
+    result = {}
+
+    # Jerk constraints: skip entirely if unconstrained
+    if has_jerk:
+        jerk_constraints = []
+        jl = jerk_min if jerk_min is not None else -np.inf
+        ju = jerk_max if jerk_max is not None else np.inf
+        for i in range(N):
+            K = K_i[i]
+            J = to_nd(jerk_block(K, h), dims)
+            jerk_constraints.append(Constraint(J, np.full(J.shape[0], jl), np.full(J.shape[0], ju)))
+        result["jerk"] = stack_robots(jerk_constraints)
+
+    # Acceleration constraints: skip entirely if unconstrained
+    if has_accel:
+        accel_constraints = []
+        al = acc_min if acc_min is not None else -np.inf
+        au = acc_max if acc_max is not None else np.inf
+        for i in range(N):
+            K = K_i[i]
+            A = to_nd(accel_block(K), dims)
+            accel_constraints.append(Constraint(A, np.full(A.shape[0], al), np.full(A.shape[0], au)))
+        result["acceleration"] = stack_robots(accel_constraints)
+
+    # Velocity constraints: always needed (carries terminal velocity)
     vel_constraints = []
-    pos_constraints = []
-
+    vl = vel_min if vel_min is not None else -np.inf
+    vu = vel_max if vel_max is not None else np.inf
     for i in range(N):
         K = K_i[i]
-
-        J = to_nd(jerk_block(K, h), dims)
-        jerk_lower = np.full(J.shape[0], jerk_min)
-        jerk_upper = np.full(J.shape[0], jerk_max)
-        jerk_constraints.append(Constraint(J, jerk_lower, jerk_upper))
-
-        A = to_nd(accel_block(K), dims)
-        accel_lower = np.full(A.shape[0], acc_min)
-        accel_upper = np.full(A.shape[0], acc_max)
-        accel_constraints.append(Constraint(A, accel_lower, accel_upper))
-
         T = to_nd(vel_block(K, h), dims)
-        vel_lower = np.empty(dims * K)
-        vel_upper = np.empty(dims * K)
+        vel_lower = np.full(dims * K, vl)
+        vel_upper = np.full(dims * K, vu)
+        # Shift bounds by initial velocity
         for k in range(K):
             for d in range(dims):
                 idx = dims * k + d
-                vel_lower[idx] = vel_min - v0[i, d]
-                vel_upper[idx] = vel_max - v0[i, d]
-
+                vel_lower[idx] -= v0[i, d]
+                vel_upper[idx] -= v0[i, d]
+        # Terminal velocity equality
         if not free_final_velocity:
             for d in range(dims):
                 idx = dims * (K - 1) + d
                 vel_lower[idx] = vf[i, d] - v0[i, d]
                 vel_upper[idx] = vf[i, d] - v0[i, d]
-
         vel_constraints.append(Constraint(T, vel_lower, vel_upper))
+    result["velocity"] = stack_robots(vel_constraints)
 
+    # Position constraints: always needed (carries terminal position)
+    pos_constraints = []
+    # Handle per-dimension position limits
+    if pos_min is not None:
+        pl = np.asarray(pos_min)
+    else:
+        pl = np.full(dims, -np.inf)
+    if pos_max is not None:
+        pu = np.asarray(pos_max)
+    else:
+        pu = np.full(dims, np.inf)
+    for i in range(N):
+        K = K_i[i]
         S = to_nd(pos_block(K, h), dims)
         pos_lower = np.empty(dims * K)
         pos_upper = np.empty(dims * K)
@@ -125,22 +155,15 @@ def build_dynamics_constraints(
             for d in range(dims):
                 idx = dims * k + d
                 offset = p0[i, d] + h * (k + 1) * v0[i, d]
-                pos_lower[idx] = pos_min[d] - offset
-                pos_upper[idx] = pos_max[d] - offset
-
+                pos_lower[idx] = pl[d] - offset
+                pos_upper[idx] = pu[d] - offset
+        # Terminal position equality
         for d in range(dims):
             idx = dims * (K - 1) + d
             pos_lower[idx] = pf[i, d] - p0[i, d] - h * K * v0[i, d]
             pos_upper[idx] = pf[i, d] - p0[i, d] - h * K * v0[i, d]
-
         pos_constraints.append(Constraint(S, pos_lower, pos_upper))
-
-    result = {
-        "jerk": stack_robots(jerk_constraints),
-        "acceleration": stack_robots(accel_constraints),
-        "velocity": stack_robots(vel_constraints),
-        "position": stack_robots(pos_constraints),
-    }
+    result["position"] = stack_robots(pos_constraints)
 
     if normalize:
         from .collision import normalize_constraint

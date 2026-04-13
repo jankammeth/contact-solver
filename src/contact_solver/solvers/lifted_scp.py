@@ -24,9 +24,10 @@ class LiftedSCP(Solver):
         self.verbose = verbose
         self.obstacle_positions = obstacle_positions
 
-        self.scp_tolerance_rel = config.solver.scp_tolerance_rel
-        self.scp_tolerance_abs = config.solver.scp_tolerance_abs
+        self.scp_convergence_rel = config.solver.scp_convergence_rel
+        self.scp_convergence_abs = config.solver.scp_convergence_abs
         self.scp_max_iterations = config.solver.scp_max_iterations
+        self.detection_tol = config.solver.scp_detection_tol
         self.osqp_settings = OSQPSettings.from_config(config)
 
         self.trajectories = None
@@ -63,7 +64,8 @@ class LiftedSCP(Solver):
 
         collisions = detect_collisions(
             positions, self.R,
-            obstacle_positions=self.obstacle_positions
+            obstacle_positions=self.obstacle_positions,
+            detection_tol=self.detection_tol,
         )
         if collisions.all_satisfied:
             if verbose:
@@ -76,6 +78,7 @@ class LiftedSCP(Solver):
         prev_pos = positions
         prev_vel = velocities
         prev_acc = accelerations
+        _debug_log = []  # diagnostic log for debugging failures
 
         for iteration in range(max_iterations):
             if verbose:
@@ -93,7 +96,47 @@ class LiftedSCP(Solver):
             if verbose:
                 print(f"  Position change - rel: {rel_change:.6f}, abs: {abs_change:.6f}")
 
-            if converged:
+            prev_pos = positions
+            prev_vel = velocities
+            prev_acc = accelerations
+
+            collisions = detect_collisions(
+                positions, self.R,
+                obstacle_positions=self.obstacle_positions,
+                detection_tol=self.detection_tol,
+            )
+
+            # Compute min pairwise distance for diagnostics
+            min_dist = np.inf
+            min_pair = None
+            min_k = None
+            for i in range(self.N):
+                for j in range(i + 1, self.N):
+                    for k in range(self.K):
+                        d = np.linalg.norm(positions[i][k] - positions[j][k])
+                        if d < min_dist:
+                            min_dist = d
+                            min_pair = (i, j)
+                            min_k = k
+
+            _debug_log.append({
+                "iteration": iteration + 1,
+                "converged": bool(converged),
+                "rel_change": float(rel_change),
+                "abs_change": float(abs_change),
+                "collision_free": bool(collisions.all_satisfied),
+                "n_violations": collisions.n_violations,
+                "worst_violation": float(collisions.worst_violation),
+                "min_dist": float(min_dist),
+                "min_pair": min_pair,
+                "min_k": min_k,
+                "osqp_status": osqp_info.get("status", "?"),
+                "osqp_pri_res": float(osqp_info.get("pri_res", 0)),
+                "osqp_dua_res": float(osqp_info.get("dua_res", 0)),
+                "osqp_iter": osqp_info.get("iter", 0),
+            })
+
+            if collisions.all_satisfied and converged:
                 if verbose:
                     print(f"Converged after {iteration + 1} iterations.")
                 metrics["timing"]["scp_iterations_time"] = time.time() - t_scp
@@ -102,16 +145,9 @@ class LiftedSCP(Solver):
                     positions, velocities, accelerations, metrics, t_start, "converged"
                 )
 
-            prev_pos = positions
-            prev_vel = velocities
-            prev_acc = accelerations
-            collisions = detect_collisions(
-                positions, self.R,
-                obstacle_positions=self.obstacle_positions
-            )
-
         metrics["timing"]["scp_iterations_time"] = time.time() - t_scp
         metrics["scp_iterations"] = max_iterations
+        metrics["_debug_log"] = _debug_log  # attach debug log to failed runs
         return self._finalize(
             positions, velocities, accelerations, metrics, t_start, "max_iterations"
         )
@@ -247,25 +283,41 @@ class LiftedSCP(Solver):
         lower, upper = [], []
         row_idx = 0
 
+        has_vel = self.vel_min is not None or self.vel_max is not None
+        has_acc = self.acc_min is not None or self.acc_max is not None
+
+        vl = self.vel_min if self.vel_min is not None else -np.inf
+        vu = self.vel_max if self.vel_max is not None else np.inf
+        al = self.acc_min if self.acc_min is not None else -np.inf
+        au = self.acc_max if self.acc_max is not None else np.inf
+
         for i in range(self.N):
             for k in range(self.K):
                 idx = self._get_var_indices(i, k)
 
-                for key in ["vx", "vy"]:
-                    rows.append(row_idx)
-                    cols.append(idx[key])
-                    vals.append(1.0)
-                    lower.append(self.vel_min)
-                    upper.append(self.vel_max)
-                    row_idx += 1
+                if has_vel:
+                    for key in ["vx", "vy"]:
+                        rows.append(row_idx)
+                        cols.append(idx[key])
+                        vals.append(1.0)
+                        lower.append(vl)
+                        upper.append(vu)
+                        row_idx += 1
 
-                for key in ["ax", "ay"]:
-                    rows.append(row_idx)
-                    cols.append(idx[key])
-                    vals.append(1.0)
-                    lower.append(self.acc_min)
-                    upper.append(self.acc_max)
-                    row_idx += 1
+                if has_acc:
+                    for key in ["ax", "ay"]:
+                        rows.append(row_idx)
+                        cols.append(idx[key])
+                        vals.append(1.0)
+                        lower.append(al)
+                        upper.append(au)
+                        row_idx += 1
+
+        if row_idx == 0:
+            self.bound_constraint = Constraint(
+                sp.csc_matrix((0, self.total_vars)), np.array([]), np.array([])
+            )
+            return
 
         matrix = sp.coo_matrix((vals, (rows, cols)), shape=(row_idx, self.total_vars)).tocsc()
         self.bound_constraint = Constraint(matrix, np.array(lower), np.array(upper))
@@ -447,9 +499,7 @@ class LiftedSCP(Solver):
             total_norm_sq += np.sum(prev**2)
 
         rel_change = np.sqrt(total_diff_sq) / max(np.sqrt(total_norm_sq), 1e-10)
-        converged = (rel_change <= self.scp_tolerance_rel) and (
-            max_abs_change <= self.scp_tolerance_abs
-        )
+        converged = max_abs_change <= self.scp_convergence_abs
         return converged, rel_change, max_abs_change
 
     def _finalize(self, positions, velocities, accelerations, metrics, t_start, reason):
@@ -469,7 +519,8 @@ class LiftedSCP(Solver):
 
         collisions = detect_collisions(
             positions, self.R,
-            obstacle_positions=self.obstacle_positions
+            obstacle_positions=self.obstacle_positions,
+            detection_tol=self.detection_tol,
         )
         metrics["collision_check"] = {
             "all_satisfied": collisions.all_satisfied,

@@ -3,34 +3,42 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from typing import Optional
+
 import numpy as np
 from omegaconf import MISSING, OmegaConf
 
 
 @dataclass
 class EnvironmentConfig:
-    pos_x_min: float = 0.0
-    pos_x_max: float = 20.0
-    pos_y_min: float = 0.0
-    pos_y_max: float = 20.0
+    pos_x_min: Optional[float] = None
+    pos_x_max: Optional[float] = None
+    pos_y_min: Optional[float] = None
+    pos_y_max: Optional[float] = None
 
     @property
     def pos_min(self) -> np.ndarray:
-        return np.array([self.pos_x_min, self.pos_y_min])
+        return np.array([
+            self.pos_x_min if self.pos_x_min is not None else -np.inf,
+            self.pos_y_min if self.pos_y_min is not None else -np.inf,
+        ])
 
     @property
     def pos_max(self) -> np.ndarray:
-        return np.array([self.pos_x_max, self.pos_y_max])
+        return np.array([
+            self.pos_x_max if self.pos_x_max is not None else np.inf,
+            self.pos_y_max if self.pos_y_max is not None else np.inf,
+        ])
 
 
 @dataclass
 class DynamicsConfig:
-    vel_min: float = -2.0
-    vel_max: float = 2.0
-    acc_min: float = -15.0
-    acc_max: float = 15.0
-    jerk_min: float = -20.0
-    jerk_max: float = 20.0
+    vel_min: Optional[float] = None
+    vel_max: Optional[float] = None
+    acc_min: Optional[float] = None
+    acc_max: Optional[float] = None
+    jerk_min: Optional[float] = None
+    jerk_max: Optional[float] = None
 
 
 @dataclass
@@ -61,20 +69,37 @@ class ProblemConfig:
 
 @dataclass
 class SolverConfig:
-    scp_tolerance_rel: float = 1e-3
-    scp_tolerance_abs: float = 1e-3
-    scp_max_iterations: int = 15
+    # ── Detection: what counts as a collision ────────────────
+    # A pair at distance d violates if d < min_distance - detection_tol.
+    # SCP: buffer in discrete-time KDTree check (iteration + post-hoc)
+    scp_detection_tol: float = 0.0
+    # SCI: threshold for continuous-time violation search; also defines
+    #      convergence (solver stops when no violations remain)
+    sci_detection_tol: float = 0.0
 
+    # ── Convergence: when has the iterate stabilized ─────────
+    # SCP: stop when relative/absolute position change between iterations < this
+    scp_convergence_rel: float = 0.0
+    scp_convergence_abs: float = 0.0
+
+    # ── Numerical precision: subroutine solve accuracy ───────
+    # OSQP: QP subproblem precision inside SCP
+    osqp_eps_abs: float = 0.0
+    osqp_eps_rel: float = 0.0
+    # fsolve: algebraic system precision inside SCI (0 = scipy default ~1.49e-8)
+    fsolve_xtol: float = 0.0
+
+    # ── Algorithm limits ─────────────────────────────────────
+    scp_max_iterations: int = 15
     osqp_max_iter: int = 10000
-    osqp_eps_abs: float = 1e-3
-    osqp_eps_rel: float = 1e-3
     osqp_polish: bool = True
     osqp_warm_start: bool = True
     osqp_verbose: bool = False
-
-    max_contacts: int = 20
-    max_contacts_per_pair: int = 10
+    sci_max_contacts: int = 20
+    sci_max_contacts_per_pair: int = 10
+    sci_min_contact_gap: float = 0.0
     apply_velocity_bounds: bool = True
+    timeout: float = 0.0
 
 
 @dataclass

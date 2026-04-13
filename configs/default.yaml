@@ -28,18 +28,30 @@ problem:
     spacing: 0.8
 
 solver:
-  scp_tolerance_rel: 1e-3
-  scp_tolerance_abs: 1e-3
-  scp_max_iterations: 20
-  osqp_max_iter: 10000
+  # ── Detection: what counts as a collision ────────────────
+  scp_detection_tol: 1e-2
+  sci_detection_tol: 1e-6
+
+  # ── Convergence: when has the iterate stabilized ─────────
+  scp_convergence_rel: 1e-3
+  scp_convergence_abs: 1e-3
+
+  # ── Numerical precision: subroutine solve accuracy ───────
   osqp_eps_abs: 1e-3
   osqp_eps_rel: 1e-3
+  fsolve_xtol: 0.0
+
+  # ── Algorithm limits ─────────────────────────────────────
+  scp_max_iterations: 20
+  osqp_max_iter: 10000
   osqp_polish: true
   osqp_warm_start: true
   osqp_verbose: false
-  max_contacts: 30
-  max_contacts_per_pair: 10
+  sci_max_contacts: 30
+  sci_max_contacts_per_pair: 10
+  sci_min_contact_gap: 1e-6
   apply_velocity_bounds: true
+  timeout: 300.0
 
 visualization:
   show_plots: true

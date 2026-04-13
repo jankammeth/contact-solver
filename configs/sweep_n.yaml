@@ -1,13 +1,11 @@
-name: small
-description: Small configuration for quick testing
-random_seed: 4
-# Intersting seeds: (14, 27, 7)
+name: sweep_n
+description: Base configuration for N-robot sweep experiments
 
 problem:
-  n_robots: 3
-  time_horizon: 7.0
-  timestep: 0.05
-  min_distance: 0.8
+  n_robots: 2  # Will be overridden during sweep
+  time_horizon: 10.0  # Will be scaled with sqrt(N)
+  timestep: 0.1
+  min_distance: 0.5
   robot_radius: 0.25
 
   environment:
@@ -25,9 +23,9 @@ problem:
     jerk_max:
 
   scenario:
-    cluster_radius: 1.0
-    cluster_margin: 1.0
-    spacing: 1.0
+    cluster_radius: 5.0  # Will be scaled with sqrt(N)
+    cluster_margin: 1.5
+    spacing: 0.8
 
 solver:
   # ── Collision detection ────────────────
@@ -35,28 +33,28 @@ solver:
   sci_detection_tol: 1e-3
 
   # ── Convergence tolerances ─────────────
-  scp_convergence_rel: 1e-3
+  scp_convergence_rel: 0
   scp_convergence_abs: 1e-3
 
   # ── Solver tolerances ──────────────────
-  osqp_eps_abs: 1e-3
-  osqp_eps_rel: 1e-3
-  fsolve_xtol: 0.0
+  osqp_eps_abs: 1e-4
+  osqp_eps_rel: 0
+  fsolve_xtol: 0.0            # 0 = scipy default (~1.49e-8)
 
-  # ── Algorithm parameters ───────────────────────
-  scp_max_iterations: 50
+  # ── Algorithm parameters ───────────────
+  scp_max_iterations: 20
   osqp_max_iter: 10000
   osqp_polish: true
   osqp_warm_start: true
   osqp_verbose: false
-  sci_max_contacts: 40
+  sci_max_contacts: 30
   sci_max_contacts_per_pair: 10
-  sci_min_contact_gap: 1e-6
+  sci_min_contact_gap: 1e-3
   apply_velocity_bounds: false
   timeout: 300.0
 
 visualization:
-  show_plots: true
+  show_plots: false
   save_plots: false
   output_dir: outputs
   dpi: 150

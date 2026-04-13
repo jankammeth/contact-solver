@@ -21,9 +21,11 @@ class Solver(ABC):
 
         self.T_MULTIPLIER = 1.0
 
+        # Environment limits (None = unconstrained)
         self.pos_min = config.problem.environment.pos_min
         self.pos_max = config.problem.environment.pos_max
 
+        # Dynamics limits (None = unconstrained)
         self.vel_min = config.problem.dynamics.vel_min
         self.vel_max = config.problem.dynamics.vel_max
         self.acc_min = config.problem.dynamics.acc_min
@@ -68,7 +70,8 @@ class Solver(ABC):
         distances = np.linalg.norm(final - initial, axis=1)
         max_distance = distances.max()
 
-        T = (1.5 * max_distance) / self.vel_max
+        v_max = self.vel_max if self.vel_max is not None else 2.0
+        T = (1.5 * max_distance) / v_max
         T *= self.T_MULTIPLIER
 
         K = int(np.ceil(T / self.h))

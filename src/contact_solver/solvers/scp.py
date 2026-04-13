@@ -24,9 +24,10 @@ class SCP(Solver):
         self.verbose = verbose
         self.obstacle_positions = obstacle_positions
 
-        self.scp_tolerance_rel = config.solver.scp_tolerance_rel
-        self.scp_tolerance_abs = config.solver.scp_tolerance_abs
+        self.scp_convergence_rel = config.solver.scp_convergence_rel
+        self.scp_convergence_abs = config.solver.scp_convergence_abs
         self.scp_max_iterations = config.solver.scp_max_iterations
+        self.detection_tol = config.solver.scp_detection_tol
         self.osqp_settings = OSQPSettings.from_config(config)
 
         self.trajectories = None
@@ -62,7 +63,8 @@ class SCP(Solver):
 
         collisions = detect_collisions(
             positions, self.R,
-            obstacle_positions=self.obstacle_positions
+            obstacle_positions=self.obstacle_positions,
+            detection_tol=self.detection_tol,
         )
         if collisions.all_satisfied:
             if verbose:
@@ -104,7 +106,8 @@ class SCP(Solver):
             prev_pos = positions
             collisions = detect_collisions(
                 positions, self.R,
-                obstacle_positions=self.obstacle_positions
+                obstacle_positions=self.obstacle_positions,
+                detection_tol=self.detection_tol,
             )
 
         metrics["timing"]["scp_iterations_time"] = time.time() - t_scp
@@ -148,7 +151,15 @@ class SCP(Solver):
         )
 
     def _dynamics_constraint_list(self) -> list[Constraint]:
-        return [self.dynamics_constraints[k] for k in ["velocity", "position"]]
+        # Always include velocity and position (they carry terminal constraints).
+        # Jerk and acceleration are only present if limits were set.
+        keys = []
+        if "jerk" in self.dynamics_constraints:
+            keys.append("jerk")
+        if "acceleration" in self.dynamics_constraints:
+            keys.append("acceleration")
+        keys.extend(["velocity", "position"])
+        return [self.dynamics_constraints[k] for k in keys]
 
     def _build_cost_matrix(self) -> tuple[sp.csc_matrix, np.ndarray]:
         P = sp.eye(self.total_vars, format="csc") * 2.0
@@ -317,8 +328,8 @@ class SCP(Solver):
             total_norm_sq += np.sum(prev**2)
 
         rel_change = np.sqrt(total_diff_sq) / max(np.sqrt(total_norm_sq), 1e-10)
-        converged = (rel_change <= self.scp_tolerance_rel) and (
-            max_abs_change <= self.scp_tolerance_abs
+        converged = (rel_change <= self.scp_convergence_rel) and (
+            max_abs_change <= self.scp_convergence_abs
         )
         return converged, rel_change, max_abs_change
 
@@ -344,7 +355,8 @@ class SCP(Solver):
 
         collisions = detect_collisions(
             positions, self.R,
-            obstacle_positions=self.obstacle_positions
+            obstacle_positions=self.obstacle_positions,
+            detection_tol=self.detection_tol,
         )
         metrics["collision_check"] = {
             "all_satisfied": collisions.all_satisfied,

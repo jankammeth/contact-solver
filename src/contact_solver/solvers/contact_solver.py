@@ -77,13 +77,16 @@ class ContactSolver(Solver):
         super().__init__(config)
         self.verbose = verbose
         self.obstacle_positions = obstacle_positions
-        self.max_contacts = max_contacts or config.solver.max_contacts
-        self.max_contacts_per_pair = max_contacts_per_pair or config.solver.max_contacts_per_pair
+        self.max_contacts = max_contacts or config.solver.sci_max_contacts
+        self.max_contacts_per_pair = max_contacts_per_pair or config.solver.sci_max_contacts_per_pair
         self.apply_velocity_bounds = (
             apply_velocity_bounds
             if apply_velocity_bounds is not None
             else config.solver.apply_velocity_bounds
         )
+        self.detection_tol = config.solver.sci_detection_tol
+        self.min_contact_gap = config.solver.sci_min_contact_gap
+        self.fsolve_xtol = config.solver.fsolve_xtol
 
     def generate_trajectories(self, verbose: bool | None = None):
         verbose = verbose if verbose is not None else self.verbose
@@ -213,6 +216,9 @@ class ContactSolver(Solver):
         min_obs_dist = self._compute_min_obstacle_dist(positions) if self.obstacle_positions is not None else np.inf
         self.K = len(times)
 
+        # Compute max contacts on any single pair
+        max_contacts_single_pair = max(pair_cnt.values()) if pair_cnt else 0
+
         return {
             "trajectories": {
                 "positions": positions,
@@ -221,10 +227,11 @@ class ContactSolver(Solver):
             },
             "metrics": {
                 "timing": {"total_time": time.time() - t_start},
-                "converged": min_dist >= self.R - 1e-4 and min_obs_dist >= self.R - 1e-4,
+                "converged": min_dist >= self.R - self.detection_tol and min_obs_dist >= self.R - self.detection_tol,
                 "convergence_reason": reason,
                 "num_contacts": len(contacts),
                 "num_obstacle_contacts": len(obs_contacts),
+                "max_contacts_single_pair": max_contacts_single_pair,
                 "min_distance": min_dist,
                 "min_obstacle_distance": min_obs_dist,
                 "num_velocity_arcs": len(arc_times) // 2,
@@ -313,7 +320,8 @@ class ContactSolver(Solver):
                     states[i] = (contact.r_others[i].copy(), contact.v_others[i].copy())
         return states
 
-    def _find_violations(self, segments, contacts, pairs, tol=1e-6):
+    def _find_violations(self, segments, contacts, pairs):
+        tol = self.detection_tol
         contact_times = [c.t_star for c in contacts]
         violations = []
         n_segs = len(segments[0])
@@ -337,7 +345,8 @@ class ContactSolver(Solver):
                             violations.append((pair, t, dist))
         return violations
 
-    def _find_obstacle_violations(self, segments, c_coeffs, obs_contacts, tol=1e-6):
+    def _find_obstacle_violations(self, segments, c_coeffs, obs_contacts):
+        tol = self.detection_tol
         if self.obstacle_positions is None or len(self.obstacle_positions) == 0:
             return []
 
@@ -435,7 +444,7 @@ class ContactSolver(Solver):
         vars_per = 4 * self.N - 5
 
         T = self.T
-        min_gap = 1e-6
+        min_gap = self.min_contact_gap
 
         def equations(x):
             c_list = []
@@ -476,7 +485,10 @@ class ContactSolver(Solver):
             return np.array(residuals)
 
         x0 = np.concatenate([c.to_vector() for c in contacts])
-        sol, info, ier, _ = fsolve(equations, x0, full_output=True)
+        fsolve_kwargs = {"full_output": True}
+        if self.fsolve_xtol > 0:
+            fsolve_kwargs["xtol"] = self.fsolve_xtol
+        sol, info, ier, _ = fsolve(equations, x0, **fsolve_kwargs)
 
         residual = np.max(np.abs(info["fvec"])) if len(info["fvec"]) > 0 else 0.0
 
