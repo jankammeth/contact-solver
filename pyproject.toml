@@ -31,11 +31,12 @@ dev = [
 [project.scripts]
 compare-solvers = "contact_solver.cli.compare_solvers:main"
 sweep-n = "contact_solver.cli.sweep_n:main"
-sweep-n-plot = "sweep_n.sweep_n_plot:main"
+sweep-n-plot = "contact_solver.cli.sweep_n_plot:main"
+configurations = "contact_solver.cli.configurations:main"
 
 [tool.setuptools.packages.find]
-where = ["src", "."]
-include = ["contact_solver*", "sweep_n*"]
+where = ["src"]
+include = ["contact_solver*"]
 
 [tool.black]
 line-length = 100

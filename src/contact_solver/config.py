@@ -101,6 +101,16 @@ class SolverConfig:
     apply_velocity_bounds: bool = True
     timeout: float = 0.0
 
+    # ── Performance optimizations ────────────────────────────
+    # Analytical Jacobian for fsolve / scipy.optimize.root
+    use_analytical_jacobian: bool = False
+    # Root-finding method: "fsolve", "hybr", "lm"
+    root_method: str = "fsolve"
+    # Vectorized residual / segment building (numpy arrays instead of dicts)
+    vectorize_residuals: bool = False
+    # Vectorized post-processing (min_dist computation)
+    vectorize_postprocess: bool = False
+
 
 @dataclass
 class VisualizationConfig:

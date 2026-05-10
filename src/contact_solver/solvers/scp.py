@@ -328,9 +328,12 @@ class SCP(Solver):
             total_norm_sq += np.sum(prev**2)
 
         rel_change = np.sqrt(total_diff_sq) / max(np.sqrt(total_norm_sq), 1e-10)
+
+        # Standard convergence: both rel and abs thresholds met
         converged = (rel_change <= self.scp_convergence_rel) and (
             max_abs_change <= self.scp_convergence_abs
         )
+
         return converged, rel_change, max_abs_change
 
     def _finalize(self, accel_flat, positions, velocities, metrics, t_start, reason):

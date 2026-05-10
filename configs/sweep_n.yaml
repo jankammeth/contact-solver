@@ -33,8 +33,8 @@ solver:
   sci_detection_tol: 1e-3
 
   # ── Convergence tolerances ─────────────
-  scp_convergence_rel: 0
-  scp_convergence_abs: 1e-3
+  scp_convergence_rel: 1e-2
+  scp_convergence_abs: 1e-2
 
   # ── Solver tolerances ──────────────────
   osqp_eps_abs: 1e-4
@@ -49,9 +49,15 @@ solver:
   osqp_verbose: false
   sci_max_contacts: 30
   sci_max_contacts_per_pair: 10
-  sci_min_contact_gap: 1e-3
+  sci_min_contact_gap: 0
   apply_velocity_bounds: false
   timeout: 300.0
+
+  # ── Performance optimizations ──────────
+  use_analytical_jacobian: true
+  root_method: hybr
+  vectorize_residuals: true
+  vectorize_postprocess: true
 
 visualization:
   show_plots: false

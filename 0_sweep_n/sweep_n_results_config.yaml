@@ -26,8 +26,8 @@ problem:
 solver:
   scp_detection_tol: 0.001
   sci_detection_tol: 0.001
-  scp_convergence_rel: 0.0
-  scp_convergence_abs: 0.001
+  scp_convergence_rel: 0.01
+  scp_convergence_abs: 0.01
   osqp_eps_abs: 0.0001
   osqp_eps_rel: 0.0
   fsolve_xtol: 0.0
@@ -41,6 +41,10 @@ solver:
   sci_min_contact_gap: 0.001
   apply_velocity_bounds: false
   timeout: 300.0
+  use_analytical_jacobian: true
+  root_method: hybr
+  vectorize_residuals: true
+  vectorize_postprocess: true
 visualization:
   show_plots: false
   save_plots: false

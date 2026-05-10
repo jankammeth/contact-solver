@@ -9,11 +9,11 @@ from contact_solver.cli.sweep_n import create_runtime_dashboard
 
 
 def main() -> None:
-    input_path = Path("sweep_n/sweep_n_results.csv")
+    input_path = Path("0_sweep_n/sweep_n_results.csv")
     if not input_path.exists():
         raise FileNotFoundError(f"Input CSV not found: {input_path}")
 
-    plot_output = Path("sweep_n/sweep_n_results_dashboard.png")
+    plot_output = Path("0_sweep_n/sweep_n_results_dashboard.png")
     plot_output.parent.mkdir(parents=True, exist_ok=True)
 
     df = pd.read_csv(input_path)
