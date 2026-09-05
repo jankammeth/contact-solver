@@ -153,3 +153,11 @@ outputs/
 *.jpg
 *.gif
 *.mp4
+
+# Local exploration / debugging (never pushed)
+scratch/
+*_output.txt
+
+# Experiment outputs stay local; folder structure is kept
+0_*/*
+!0_*/.gitkeep

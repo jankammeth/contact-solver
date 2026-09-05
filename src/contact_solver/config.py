@@ -101,6 +101,28 @@ class SolverConfig:
     apply_velocity_bounds: bool = True
     timeout: float = 0.0
 
+    # ── PrioritizedSCP-specific options ──────────────────────
+    # If True (default, original behavior), the linearized obstacle-constraint
+    # matrix passed to OSQP at each SCP iteration of PrioritizedSCP has each
+    # row L2-normalized via `normalize_constraint`. If False, the raw matrix
+    # is passed.
+    #
+    # Why this is a toggle: the constraint row at (k, m) has 2-norm
+    #     sqrt( sum_{m'=0}^{k} (h^2 * (k+1-m'-0.5))^2 )  ∝  h^2 * k^(3/2)
+    # which spans 3+ orders of magnitude across a K=200 trajectory. Row-
+    # normalization gives OSQP a unit-norm view of every row but means
+    # `osqp_eps_abs` becomes a normalized tolerance whose translation to
+    # physical-distance error at a given k is (eps_abs * row_norm_at_k). At
+    # late k this physical tolerance can exceed `scp_detection_tol`, causing
+    # OSQP-converged iterates to register as infeasible downstream.
+    # See the prioritized planning experiment write-up for the A/B evidence.
+    #
+    # This option does NOT affect the joint solvers (LiftedSCP, ContactSolver)
+    # which use the same `normalize_constraint` helper -- those still
+    # normalize, since their cost gradient pulls iterates off the constraint
+    # boundary and the late-k tolerance issue does not manifest.
+    prio_scp_normalize_obstacles: bool = True
+
     # ── Performance optimizations ────────────────────────────
     # Analytical Jacobian for fsolve / scipy.optimize.root
     use_analytical_jacobian: bool = False
@@ -161,7 +183,7 @@ class Config:
 
 def load_config(name: str) -> Config:
     possible_paths = [
-        Path(__file__).parent.parent.parent.parent / "configs" / f"{name}.yaml",
+        Path(__file__).parent.parent.parent / "configs" / f"{name}.yaml",
         Path("configs") / f"{name}.yaml",
     ]
 

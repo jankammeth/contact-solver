@@ -91,6 +91,10 @@ def solve_qp(
         "solve_time": info.solve_time,
         "polish_time": getattr(info, "polish_time", 0.0),
         "run_time": info.run_time,
+        # Dual variables of the stacked constraint system, in the same row
+        # order as `constraints`. Used by the regime classifiers to read
+        # off the discrete multiplier estimate on collision rows.
+        "y": np.asarray(result.y).copy() if result.y is not None else None,
     }
 
     converged = info.status_val in (1, 2)

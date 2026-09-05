@@ -1,0 +1,91 @@
+name: sweep_n_prioritized
+description: |
+  Base configuration for the prioritized-planning sweep (Prio SCI vs Prio SCP).
+  Forked from sweep_n.yaml; only the solver tolerances differ.
+
+    - osqp_eps_abs raised from 1e-4 to 5e-4. The per-rank QP at large N
+      hits ill-conditioned linearizations near deeply infeasible iterates;
+      tightening below the detection_tol (1e-3) only causes spurious OSQP
+      "max iter" failures without affecting the actual feasibility check
+      downstream.
+
+    - prio_scp_normalize_obstacles set to FALSE. The default in SolverConfig
+      is True (preserving joint-solver behavior elsewhere in the codebase).
+      Disabling row-normalization of PrioritizedSCP's linearized obstacle
+      constraints makes OSQP's `eps_abs` a tolerance in physical-distance
+      units rather than a unit-norm-row tolerance: with normalization on,
+      the per-row scale factor grows as h^2 * k^(3/2) across the K-step
+      trajectory and the physical tolerance at late k exceeds
+      `scp_detection_tol`, producing false "max_iterations" failures where
+      OSQP thinks it has converged but the downstream distance check
+      registers the iterate as infeasible.
+
+problem:
+  n_robots: 2  # Will be overridden during sweep
+  time_horizon: 10.0  # Will be scaled with sqrt(N)
+  timestep: 0.1
+  min_distance: 0.5
+  robot_radius: 0.25
+
+  environment:
+    pos_x_min:
+    pos_x_max:
+    pos_y_min:
+    pos_y_max:
+
+  dynamics:
+    vel_min:
+    vel_max:
+    acc_min:
+    acc_max:
+    jerk_min:
+    jerk_max:
+
+  scenario:
+    cluster_radius: 5.0  # Will be scaled with sqrt(N)
+    cluster_margin: 1.5
+    spacing: 0.8
+
+solver:
+  # ── Collision detection ────────────────
+  scp_detection_tol: 1e-3
+  sci_detection_tol: 1e-3
+
+  # ── Convergence tolerances ─────────────
+  scp_convergence_rel: 1e-2
+  scp_convergence_abs: 1e-2
+
+  # ── Solver tolerances ──────────────────
+  osqp_eps_abs: 5e-4          # relaxed from 1e-4 (sweep_n) — still well below scp_detection_tol
+  osqp_eps_rel: 0
+  fsolve_xtol: 0.0            # 0 = scipy default (~1.49e-8)
+
+  # ── Algorithm parameters ───────────────
+  scp_max_iterations: 20
+  osqp_max_iter: 10000
+  osqp_polish: true
+  osqp_warm_start: true
+  osqp_verbose: false
+  sci_max_contacts: 30
+  sci_max_contacts_per_pair: 20
+  sci_min_contact_gap: 0
+  apply_velocity_bounds: false
+  timeout: 300.0
+
+  # ── PrioritizedSCP-specific ────────────
+  # See description above. Default in SolverConfig is True; we set it to
+  # False here because this experiment is specifically prioritized planning.
+  prio_scp_normalize_obstacles: false
+
+  # ── Performance optimizations ──────────
+  use_analytical_jacobian: true
+  root_method: hybr
+  vectorize_residuals: true
+  vectorize_postprocess: true
+
+visualization:
+  show_plots: false
+  save_plots: false
+  output_dir: outputs
+  dpi: 150
+  figsize: [10, 10]

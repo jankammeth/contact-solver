@@ -32,6 +32,13 @@ dev = [
 compare-solvers = "contact_solver.cli.compare_solvers:main"
 sweep-n = "contact_solver.cli.sweep_n:main"
 sweep-n-plot = "contact_solver.cli.sweep_n_plot:main"
+sweep-n-prioritized = "contact_solver.cli.sweep_n_prioritized:main"
+sweep-n-prioritized-plot = "contact_solver.cli.sweep_n_prioritized_plot:main"
+panel-prio-sci = "contact_solver.cli.panel_prio_sci:main"
+sweep-K = "contact_solver.cli.sweep_K:main"
+sweep-K-plot = "contact_solver.cli.sweep_K_plot:main"
+phase-diagram = "contact_solver.cli.phase_diagram:main"
+pocket-probe = "contact_solver.cli.pocket_probe:main"
 configurations = "contact_solver.cli.configurations:main"
 
 [tool.setuptools.packages.find]

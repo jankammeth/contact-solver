@@ -67,7 +67,10 @@ class LiftedSCP(Solver):
             obstacle_positions=self.obstacle_positions,
             detection_tol=self.detection_tol,
         )
-        if collisions.all_satisfied:
+        # force_scp_iterations: campaign mode (phase_diagram) supplies a
+        # feasible initial guess on purpose; the constrained SCP loop must
+        # still run, otherwise the guess is returned unoptimized.
+        if collisions.all_satisfied and not getattr(self, "force_scp_iterations", False):
             if verbose:
                 print("Initial trajectory is collision-free")
             return self._finalize(
@@ -465,7 +468,46 @@ class LiftedSCP(Solver):
         warm_start = self._build_warm_start(prev_pos, prev_vel, prev_acc)
 
         x, metrics = solve_qp(P, q, constraints, warm_start=warm_start, settings=self.osqp_settings)
+
+        # Record the collision-row dual slice of the most recent QP.
+        # Row order in the stacked system: dynamics | bounds | collision
+        # (pair-major, timestep-minor) | obstacle. For the regime
+        # classifiers, duals on collision rows are the discrete estimate
+        # of the contact multiplier measure (up to the constant row-
+        # normalization factor).
+        y = metrics.get("y")
+        n_dyn = self.dynamics_constraint.matrix.shape[0]
+        n_bnd = self.bound_constraint.matrix.shape[0]
+        n_col = coll_constr.matrix.shape[0]
+        if y is not None and n_col > 0:
+            n_pairs = self.N * (self.N - 1) // 2
+            coll_y = y[n_dyn + n_bnd : n_dyn + n_bnd + n_col]
+            # OSQP sign convention: for lower-bounded rows (l <= Ax,
+            # u = +inf) the active dual is NEGATIVE. Store -y so the
+            # recorded profile is the nonnegative multiplier estimate.
+            self._last_collision_duals = (-coll_y).reshape(n_pairs, self.K)
+            self._last_dual_quality = {
+                "pri_res": metrics.get("pri_res"),
+                "dua_res": metrics.get("dua_res"),
+                "polish_time": metrics.get("polish_time"),
+                "status": metrics.get("status"),
+            }
         return x, metrics
+
+    def get_collision_duals(self):
+        """Collision-row duals of the final SCP iteration.
+
+        Returns:
+            (duals, quality): duals is an (n_pairs, K) array (pairs in
+            (i, j), i < j lexicographic order), or None if no
+            collision-constrained QP was solved. quality is a dict with
+            the OSQP residuals of that solve (gate on `dua_res` before
+            trusting the profile).
+        """
+        return (
+            getattr(self, "_last_collision_duals", None),
+            getattr(self, "_last_dual_quality", None),
+        )
 
     def _extract_trajectories(self, x: np.ndarray):
         positions, velocities, accelerations = [], [], []

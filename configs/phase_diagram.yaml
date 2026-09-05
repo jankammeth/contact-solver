@@ -1,0 +1,89 @@
+name: phase_diagram
+description: |
+  G4 phase-diagram campaign (two-robot active-set regimes).
+  Nondimensionalized problem: R = 1, T = 1, r(0) on the +x axis.
+  Forked from sweep_n.yaml; differences:
+    - n_robots fixed to 2, time_horizon 1.0, min_distance 1.0
+    - solver tolerances taken verbatim from small.yaml
+      (compare-solvers); polished duals feed the dual-mass classifier
+    - sci_max_contacts raised (arc refinement needs many atoms)
+  The campaign CLI overrides problem.timestep per K-refinement level
+  and solver.sci_detection_tol per delta-refinement level.
+
+problem:
+  n_robots: 2
+  # Solve horizon: the regime classification is invariant under time
+  # rescaling, so the SOLVE runs at T = 10 (h = 0.05 at K = 200, the
+  # same numerical regime as compare-solvers / the sweeps: acceleration
+  # and dual magnitudes O(1), well-conditioned dynamics rows). All
+  # reported times are normalized to t/T in [0, 1]. Solving at T = 1
+  # blows accelerations up 100x and duals 1000x, making the absolute
+  # OSQP tolerances effectively far tighter and the QP ill-conditioned.
+  time_horizon: 10.0
+  timestep: 0.05           # K = 200 default; overridden per K level
+  min_distance: 1.0
+  robot_radius: 0.5
+
+  environment:
+    pos_x_min:
+    pos_x_max:
+    pos_y_min:
+    pos_y_max:
+
+  dynamics:
+    vel_min:
+    vel_max:
+    acc_min:
+    acc_max:
+    jerk_min:
+    jerk_max:
+
+  scenario:
+    cluster_radius: 5.0    # unused (explicit BCs), kept for schema
+    cluster_margin: 1.5
+    spacing: 0.8
+
+solver:
+  # ── Collision detection ────────────────
+  scp_detection_tol: 1e-3
+  sci_detection_tol: 1e-3  # overridden per delta level by the CLI
+
+  # ── Convergence tolerances ─────────────
+  scp_convergence_rel: 1e-3
+  scp_convergence_abs: 1e-3
+
+  # ── Solver tolerances ──────────────────
+  # small.yaml values EXCEPT osqp_eps: eps_abs must sit strictly below
+  # scp_detection_tol (here tol/2), and eps_rel must be 0 — OSQP's
+  # termination is eps_abs + eps_rel*scale, and with positions O(4)
+  # the relative term re-inflates the primal slack above the detection
+  # band (measured: status 'solved' at pri_res 1.2e-3 -> fixed points
+  # with nodes at d = R - 1.3e-3 -> detection re-flags forever).
+  osqp_eps_abs: 5e-4
+  osqp_eps_rel: 0.0
+  fsolve_xtol: 0.0
+
+  # ── Algorithm parameters ───────────────
+  scp_max_iterations: 50
+  osqp_max_iter: 10000
+  osqp_polish: true
+  osqp_warm_start: true
+  osqp_verbose: false
+  sci_max_contacts: 60
+  sci_max_contacts_per_pair: 60
+  sci_min_contact_gap: 0
+  apply_velocity_bounds: false
+  timeout: 120.0
+
+  # ── Performance optimizations ──────────
+  use_analytical_jacobian: true
+  root_method: hybr
+  vectorize_residuals: true
+  vectorize_postprocess: true
+
+visualization:
+  show_plots: false
+  save_plots: false
+  output_dir: outputs
+  dpi: 150
+  figsize: [10, 10]

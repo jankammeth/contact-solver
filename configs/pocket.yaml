@@ -1,0 +1,91 @@
+name: pocket
+description: |
+  Pocket probe, Phase B0 (structure-agnostic): axis family inside the
+  2->pocket boundary (symmetric 2-3 graze anchor d_g = 1.3447448...,
+  F13 quartic). Question: what is the optimal active set past the
+  graze curve — 3+ isolated contacts / atom+arc / one arc / two arcs
+  with lift-off? SCI's detection tolerance is an algorithmic
+  approximation device and plays no role here: LiftedSCP solves the
+  continuous constraint directly and the classifiers read the
+  structure from geometry (active-width scaling) and duals (mass
+  concentration).
+
+  Forked from phase_diagram.yaml; differences:
+    - tighter tolerance stack: the active-width classifier's eps floor
+      sits at ~3x the solver slack, so to read structure deep in the
+      pocket the slack is pushed down (detection 5e-4, eps_abs = tol/2
+      per the phase_diagram conditioning note, eps_rel 0 mandatory)
+    - more OSQP/SCP iterations + longer timeout (tighter eps at high K)
+    - sci_max_contacts raised to 200 (Phase C delta-refinement reuse)
+  The pocket-probe CLI overrides problem.timestep per K level.
+
+problem:
+  n_robots: 2
+  # Solve horizon: T = 10 for QP conditioning (see phase_diagram.yaml);
+  # all reported times are t/T in [0, 1], costs are converted back to
+  # the nondimensional T = 1 convention (J_nd = J_solve * T^3) in the
+  # results CSV.
+  time_horizon: 10.0
+  timestep: 0.05           # overridden per K level by the CLI
+  min_distance: 1.0
+  robot_radius: 0.5
+
+  environment:
+    pos_x_min:
+    pos_x_max:
+    pos_y_min:
+    pos_y_max:
+
+  dynamics:
+    vel_min:
+    vel_max:
+    acc_min:
+    acc_max:
+    jerk_min:
+    jerk_max:
+
+  scenario:
+    cluster_radius: 5.0    # unused (explicit BCs), kept for schema
+    cluster_margin: 1.5
+    spacing: 0.8
+
+solver:
+  # ── Collision detection ────────────────
+  scp_detection_tol: 5e-4
+  sci_detection_tol: 1e-3  # Phase C overrides per delta level
+
+  # ── Convergence tolerances ─────────────
+  scp_convergence_rel: 5e-4
+  scp_convergence_abs: 5e-4
+
+  # ── Solver tolerances ──────────────────
+  # eps_abs = detection_tol / 2 (strictly below the detection band,
+  # cf. phase_diagram.yaml conditioning note); eps_rel MUST stay 0.
+  osqp_eps_abs: 2.5e-4
+  osqp_eps_rel: 0.0
+  fsolve_xtol: 0.0
+
+  # ── Algorithm parameters ───────────────
+  scp_max_iterations: 80
+  osqp_max_iter: 40000
+  osqp_polish: true
+  osqp_warm_start: true
+  osqp_verbose: false
+  sci_max_contacts: 200
+  sci_max_contacts_per_pair: 200
+  sci_min_contact_gap: 0
+  apply_velocity_bounds: false
+  timeout: 600.0
+
+  # ── Performance optimizations ──────────
+  use_analytical_jacobian: true
+  root_method: hybr
+  vectorize_residuals: true
+  vectorize_postprocess: true
+
+visualization:
+  show_plots: false
+  save_plots: false
+  output_dir: outputs
+  dpi: 150
+  figsize: [10, 10]

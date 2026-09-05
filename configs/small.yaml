@@ -53,6 +53,7 @@ solver:
   sci_max_contacts_per_pair: 10
   sci_min_contact_gap: 1e-6
   apply_velocity_bounds: false
+  use_analytical_jacobian: true
   timeout: 300.0
 
 visualization:

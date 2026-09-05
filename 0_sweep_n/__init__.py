@@ -1,1 +1,0 @@
-"""Sweep plotting utilities package."""

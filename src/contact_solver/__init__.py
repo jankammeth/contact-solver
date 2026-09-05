@@ -7,7 +7,7 @@ from .scenarios import (
     generate_swap_positions,
     generate_random_obstacles,
 )
-from .solvers import ContactSolver, LiftedSCP, Solver
+from .solvers import ContactSolver, LiftedSCP, PrioritizedSCI, PrioritizedSCP, Solver
 from .viz import (
     visualize_trajectories,
     visualize_comparison,
@@ -23,6 +23,8 @@ __all__ = [
     "Solver",
     "ContactSolver",
     "LiftedSCP",
+    "PrioritizedSCI",
+    "PrioritizedSCP",
     "CollisionReport",
     "detect_collisions",
     "generate_random_positions",

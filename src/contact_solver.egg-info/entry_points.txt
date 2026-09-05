@@ -1,5 +1,0 @@
-[console_scripts]
-compare-solvers = contact_solver.cli.compare_solvers:main
-configurations = contact_solver.cli.configurations:main
-sweep-n = contact_solver.cli.sweep_n:main
-sweep-n-plot = contact_solver.cli.sweep_n_plot:main

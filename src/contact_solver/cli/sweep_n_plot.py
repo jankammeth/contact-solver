@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Regenerate sweep dashboard plots from existing CSV results."""
 
+import argparse
 from pathlib import Path
 
 import pandas as pd
@@ -9,11 +10,24 @@ from .sweep_n import create_runtime_dashboard
 
 
 def main() -> None:
-    input_path = Path("0_sweep_n/sweep_n_results.csv")
+    parser = argparse.ArgumentParser(description="Generate sweep_n dashboard from CSV results")
+    parser.add_argument("--input", type=str, default="0_sweep_n/sweep_n_results.csv",
+                        help="Path to input sweep_n results CSV (default: 0_sweep_n/sweep_n_results.csv)")
+    parser.add_argument("--output", type=str, default=None,
+                        help="Path to output PNG dashboard (default: same dir as input with _dashboard suffix)")
+    args = parser.parse_args()
+    
+    input_path = Path(args.input)
     if not input_path.exists():
         raise FileNotFoundError(f"Input CSV not found: {input_path}")
 
-    plot_output = Path("0_sweep_n/sweep_n_results_dashboard.png")
+    # Determine output path
+    if args.output:
+        plot_output = Path(args.output)
+    else:
+        # Default: put dashboard next to input CSV with _dashboard suffix
+        plot_output = input_path.parent / (input_path.stem + "_dashboard.png")
+    
     plot_output.parent.mkdir(parents=True, exist_ok=True)
 
     df = pd.read_csv(input_path)
