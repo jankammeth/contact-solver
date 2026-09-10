@@ -1,0 +1,69 @@
+name: sweep_n_prioritized
+description: "Base configuration for the prioritized-planning sweep (Prio SCI vs Prio\
+  \ SCP).\nForked from sweep_n.yaml; only the solver tolerances differ.\n\n  - osqp_eps_abs\
+  \ raised from 1e-4 to 5e-4. The per-rank QP at large N\n    hits ill-conditioned\
+  \ linearizations near deeply infeasible iterates;\n    tightening below the detection_tol\
+  \ (1e-3) only causes spurious OSQP\n    \"max iter\" failures without affecting\
+  \ the actual feasibility check\n    downstream.\n\n  - prio_scp_normalize_obstacles\
+  \ set to FALSE. The default in SolverConfig\n    is True (preserving joint-solver\
+  \ behavior elsewhere in the codebase).\n    Disabling row-normalization of PrioritizedSCP's\
+  \ linearized obstacle\n    constraints makes OSQP's `eps_abs` a tolerance in physical-distance\n\
+  \    units rather than a unit-norm-row tolerance: with normalization on,\n    the\
+  \ per-row scale factor grows as h^2 * k^(3/2) across the K-step\n    trajectory\
+  \ and the physical tolerance at late k exceeds\n    `scp_detection_tol`, producing\
+  \ false \"max_iterations\" failures where\n    OSQP thinks it has converged but\
+  \ the downstream distance check\n    registers the iterate as infeasible.\n"
+random_seed: null
+problem:
+  n_robots: 2
+  time_horizon: 10.0
+  timestep: 0.1
+  min_distance: 0.5
+  robot_radius: 0.25
+  environment:
+    pos_x_min: null
+    pos_x_max: null
+    pos_y_min: null
+    pos_y_max: null
+  dynamics:
+    vel_min: null
+    vel_max: null
+    acc_min: null
+    acc_max: null
+    jerk_min: null
+    jerk_max: null
+  scenario:
+    cluster_radius: 5.0
+    cluster_margin: 1.5
+    spacing: 0.8
+solver:
+  scp_detection_tol: 0.001
+  sci_detection_tol: 0.001
+  scp_convergence_rel: 0.01
+  scp_convergence_abs: 0.01
+  osqp_eps_abs: 0.0005
+  osqp_eps_rel: 0.0
+  fsolve_xtol: 0.0
+  scp_max_iterations: 20
+  osqp_max_iter: 10000
+  osqp_polish: true
+  osqp_warm_start: true
+  osqp_verbose: false
+  sci_max_contacts: 30
+  sci_max_contacts_per_pair: 20
+  sci_min_contact_gap: 0.0
+  apply_velocity_bounds: false
+  timeout: 300.0
+  prio_scp_normalize_obstacles: false
+  use_analytical_jacobian: true
+  root_method: hybr
+  vectorize_residuals: true
+  vectorize_postprocess: true
+visualization:
+  show_plots: false
+  save_plots: false
+  output_dir: outputs
+  dpi: 150
+  figsize:
+  - 10
+  - 10

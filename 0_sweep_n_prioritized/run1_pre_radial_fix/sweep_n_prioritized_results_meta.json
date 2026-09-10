@@ -1,0 +1,9 @@
+{
+  "n_min": 2,
+  "n_max": 20,
+  "n_step": 2,
+  "seeds": 50,
+  "timesteps": 200,
+  "timeout": 300.0,
+  "base_config": "sweep_n_prioritized"
+}

@@ -1,0 +1,68 @@
+name: pocket
+description: "Pocket probe, Phase B0 (structure-agnostic): axis family inside the\n\
+  2->pocket boundary (symmetric 2-3 graze anchor d_g = 1.3447448...,\nF13 quartic).\
+  \ Question: what is the optimal active set past the\ngraze curve — 3+ isolated contacts\
+  \ / atom+arc / one arc / two arcs\nwith lift-off? SCI's detection tolerance is an\
+  \ algorithmic\napproximation device and plays no role here: LiftedSCP solves the\n\
+  continuous constraint directly and the classifiers read the\nstructure from geometry\
+  \ (active-width scaling) and duals (mass\nconcentration).\n\nForked from phase_diagram.yaml;\
+  \ differences:\n  - tighter tolerance stack: the active-width classifier's eps floor\n\
+  \    sits at ~3x the solver slack, so to read structure deep in the\n    pocket\
+  \ the slack is pushed down (detection 5e-4, eps_abs = tol/2\n    per the phase_diagram\
+  \ conditioning note, eps_rel 0 mandatory)\n  - more OSQP/SCP iterations + longer\
+  \ timeout (tighter eps at high K)\n  - sci_max_contacts raised to 200 (Phase C delta-refinement\
+  \ reuse)\nThe pocket-probe CLI overrides problem.timestep per K level.\n"
+random_seed: null
+problem:
+  n_robots: 2
+  time_horizon: 10.0
+  timestep: 0.05
+  min_distance: 1.0
+  robot_radius: 0.5
+  environment:
+    pos_x_min: null
+    pos_x_max: null
+    pos_y_min: null
+    pos_y_max: null
+  dynamics:
+    vel_min: null
+    vel_max: null
+    acc_min: null
+    acc_max: null
+    jerk_min: null
+    jerk_max: null
+  scenario:
+    cluster_radius: 5.0
+    cluster_margin: 1.5
+    spacing: 0.8
+solver:
+  scp_detection_tol: 0.0005
+  sci_detection_tol: 0.001
+  scp_convergence_rel: 0.0005
+  scp_convergence_abs: 0.0005
+  osqp_eps_abs: 0.00025
+  osqp_eps_rel: 0.0
+  fsolve_xtol: 0.0
+  scp_max_iterations: 80
+  osqp_max_iter: 40000
+  osqp_polish: true
+  osqp_warm_start: true
+  osqp_verbose: false
+  sci_max_contacts: 200
+  sci_max_contacts_per_pair: 200
+  sci_min_contact_gap: 0.0
+  apply_velocity_bounds: false
+  timeout: 600.0
+  prio_scp_normalize_obstacles: true
+  use_analytical_jacobian: true
+  root_method: hybr
+  vectorize_residuals: true
+  vectorize_postprocess: true
+visualization:
+  show_plots: false
+  save_plots: false
+  output_dir: outputs
+  dpi: 150
+  figsize:
+  - 10
+  - 10

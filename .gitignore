@@ -158,6 +158,14 @@ outputs/
 scratch/
 *_output.txt
 
-# Experiment outputs stay local; folder structure is kept
-0_*/*
-!0_*/.gitkeep
+# Track experiment scripts, configurations, results, and figures
+!/0_*/**
+
+# Keep local metadata and caches out of experiment commits
+/0_*/**/.DS_Store
+/0_*/**/Thumbs.db
+/0_*/**/__pycache__/
+/0_*/**/*.py[cod]
+/0_*/**/.ipynb_checkpoints/
+/0_*/**/.env
+/0_*/**/.venv/

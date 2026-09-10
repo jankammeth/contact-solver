@@ -1,0 +1,55 @@
+name: sweep_n
+description: Base configuration for N-robot sweep experiments
+random_seed: null
+problem:
+  n_robots: 2
+  time_horizon: 10.0
+  timestep: 0.1
+  min_distance: 0.5
+  robot_radius: 0.25
+  environment:
+    pos_x_min: null
+    pos_x_max: null
+    pos_y_min: null
+    pos_y_max: null
+  dynamics:
+    vel_min: null
+    vel_max: null
+    acc_min: null
+    acc_max: null
+    jerk_min: null
+    jerk_max: null
+  scenario:
+    cluster_radius: 5.0
+    cluster_margin: 1.5
+    spacing: 0.8
+solver:
+  scp_detection_tol: 0.001
+  sci_detection_tol: 0.001
+  scp_convergence_rel: 0.01
+  scp_convergence_abs: 0.01
+  osqp_eps_abs: 0.0001
+  osqp_eps_rel: 0.0
+  fsolve_xtol: 0.0
+  scp_max_iterations: 20
+  osqp_max_iter: 10000
+  osqp_polish: true
+  osqp_warm_start: true
+  osqp_verbose: false
+  sci_max_contacts: 30
+  sci_max_contacts_per_pair: 10
+  sci_min_contact_gap: 0.0
+  apply_velocity_bounds: false
+  timeout: 300.0
+  use_analytical_jacobian: true
+  root_method: hybr
+  vectorize_residuals: true
+  vectorize_postprocess: true
+visualization:
+  show_plots: false
+  save_plots: false
+  output_dir: outputs
+  dpi: 150
+  figsize:
+  - 10
+  - 10
