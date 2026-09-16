@@ -71,9 +71,15 @@ class _ObstacleContact:
 class PrioritizedSCI(Solver):
     """Sequential contact insertion with prioritized planning."""
 
-    def __init__(self, config: Config, verbose: bool = False):
+    def __init__(self, config: Config, verbose: bool = False, priority_order=None):
         super().__init__(config)
         self.verbose = verbose
+        self.matching_seconds = 0.0
+        self.matching_solves = 0
+        self.matching_nfev = 0
+        if priority_order is not None and sorted(priority_order) != list(range(self.N)):
+            raise ValueError("priority_order must be a permutation of robot indices")
+        self.priority_order = list(priority_order) if priority_order is not None else None
         self.max_contacts_per_robot = config.solver.sci_max_contacts
         self.max_contacts_per_obstacle = config.solver.sci_max_contacts_per_pair
         self.detection_tol = config.solver.sci_detection_tol
@@ -86,6 +92,9 @@ class PrioritizedSCI(Solver):
     def generate_trajectories(self, verbose: bool | None = None):
         verbose = verbose if verbose is not None else self.verbose
         t_wall_start = time.perf_counter()
+        self.matching_seconds = 0.0
+        self.matching_solves = 0
+        self.matching_nfev = 0
 
         p0 = self.initial_positions.reshape(self.N, 2)
         pf = self.final_positions.reshape(self.N, 2)
@@ -100,11 +109,12 @@ class PrioritizedSCI(Solver):
             else np.zeros((self.N, 2))
         )
 
-        order = conflict_severity_order(p0, v0, pf, vf, self.T, self.R)
+        order = (list(self.priority_order) if self.priority_order is not None
+                 else conflict_severity_order(p0, v0, pf, vf, self.T, self.R))
 
         if verbose:
             print(f"PrioritizedSCI: N={self.N}, T={self.T:.3f}, R={self.R:.3f}m")
-            print(f"  priority order (conflict severity): {order}")
+            print(f"  priority order: {order}")
 
         trajectories: dict[int, PiecewiseCubicTrajectory] = {}
         contacts_per_rank: list[int] = []
@@ -136,11 +146,15 @@ class PrioritizedSCI(Solver):
                     f"{'ok' if ok else 'incomplete'}"
                 )
 
+        t_solve = time.perf_counter() - t_wall_start
+        t_post_start = time.perf_counter()
+        self._trajectories = trajectories
         times, positions, velocities, accelerations = self._sample_all(trajectories)
         min_dist = self._compute_min_dist(positions)
         converged = (min_dist >= self.R - self.detection_tol) and all(rank_converged)
         reason = "converged" if converged else "max_contacts_or_violation"
 
+        t_post = time.perf_counter() - t_post_start
         t_wall_total = time.perf_counter() - t_wall_start
 
         return {
@@ -153,10 +167,15 @@ class PrioritizedSCI(Solver):
                 "timing": {
                     "total_time": t_wall_total,
                     "wall_time": t_wall_total,
+                    "solve_time": t_solve,
+                    "postprocess_time": t_post,
                     "per_rank_time": time_per_rank,
                 },
                 "converged": converged,
                 "convergence_reason": reason,
+                "matching_seconds": self.matching_seconds,
+                "matching_solves": self.matching_solves,
+                "nfev": self.matching_nfev,
                 "num_contacts": sum(contacts_per_rank),
                 "num_contacts_per_rank": contacts_per_rank,
                 "max_contacts_single_pair": max(max_per_pair_per_rank) if max_per_pair_per_rank else 0,
@@ -362,7 +381,11 @@ class PrioritizedSCI(Solver):
         fsolve_kwargs = {"full_output": True}
         if self.fsolve_xtol > 0:
             fsolve_kwargs["xtol"] = self.fsolve_xtol
+        matching_start = time.perf_counter()
         sol, _info, _ier, _msg = fsolve(residuals, x0, **fsolve_kwargs)
+        self.matching_seconds += time.perf_counter() - matching_start
+        self.matching_solves += 1
+        self.matching_nfev += int(_info["nfev"])
 
         result = []
         for i in range(K):

@@ -35,9 +35,12 @@ from .prioritized_utils import conflict_severity_order
 class PrioritizedSCP(Solver):
     """Sequential convex programming with prioritized planning."""
 
-    def __init__(self, config: Config, verbose: bool = False):
+    def __init__(self, config: Config, verbose: bool = False, priority_order=None):
         super().__init__(config)
         self.verbose = verbose
+        if priority_order is not None and sorted(priority_order) != list(range(self.N)):
+            raise ValueError("priority_order must be a permutation of robot indices")
+        self.priority_order = list(priority_order) if priority_order is not None else None
         self.normalize_obstacle_constraints = bool(
             config.solver.prio_scp_normalize_obstacles
         )
@@ -68,11 +71,12 @@ class PrioritizedSCP(Solver):
             else np.zeros((self.N, 2))
         )
 
-        order = conflict_severity_order(p0, v0, pf, vf, self.T, self.R)
+        order = (list(self.priority_order) if self.priority_order is not None
+                 else conflict_severity_order(p0, v0, pf, vf, self.T, self.R))
 
         if verbose:
             print(f"PrioritizedSCP: N={self.N}, K={self.K}, T={self.T:.3f}, R={self.R:.3f}m")
-            print(f"  priority order (conflict severity): {order}")
+            print(f"  priority order: {order}")
 
         committed_positions: dict[int, np.ndarray] = {}
         committed_velocities: dict[int, np.ndarray] = {}

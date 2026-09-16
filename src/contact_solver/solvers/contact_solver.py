@@ -143,9 +143,16 @@ class ContactSolver(Solver):
         max_contacts: int | None = None,
         max_contacts_per_pair: int | None = None,
         apply_velocity_bounds: bool | None = None,
+        contact_selection: str = "deepest",
     ):
         super().__init__(config)
         self.verbose = verbose
+        self.matching_seconds = 0.0
+        self.matching_solves = 0
+        self.matching_nfev = 0
+        if contact_selection not in ("deepest", "earliest"):
+            raise ValueError("contact_selection must be deepest or earliest")
+        self.contact_selection = contact_selection
         self.obstacle_positions = obstacle_positions
         self.max_contacts = max_contacts or config.solver.sci_max_contacts
         self.max_contacts_per_pair = max_contacts_per_pair or config.solver.sci_max_contacts_per_pair
@@ -167,6 +174,9 @@ class ContactSolver(Solver):
     def generate_trajectories(self, verbose: bool | None = None):
         verbose = verbose if verbose is not None else self.verbose
         t_wall_start = time.perf_counter()
+        self.matching_seconds = 0.0
+        self.matching_solves = 0
+        self.matching_nfev = 0
 
         p0 = self.initial_positions.reshape(self.N, 2)
         pf = self.final_positions.reshape(self.N, 2)
@@ -252,11 +262,13 @@ class ContactSolver(Solver):
                 reason = "max_contacts"
                 break
 
-            worst_rr_dist = min(v[2] for v in elig) if elig else np.inf
-            worst_ro_dist = min(v[3] for v in elig_obs) if elig_obs else np.inf
-
-            if worst_rr_dist <= worst_ro_dist and elig:
-                worst = min(elig, key=lambda v: v[2])
+            # Select among the same eligible candidates; only the ranking changes.
+            rr_key = (lambda v: v[1]) if self.contact_selection == "earliest" else (lambda v: v[2])
+            ro_key = (lambda v: v[2]) if self.contact_selection == "earliest" else (lambda v: v[3])
+            best_rr = min(elig, key=rr_key) if elig else None
+            best_ro = min(elig_obs, key=ro_key) if elig_obs else None
+            if best_rr is not None and (best_ro is None or rr_key(best_rr) <= ro_key(best_ro)):
+                worst = best_rr
                 pair, t_viol, _ = worst
                 new_contact = self._init_contact(pair, t_viol, segments, pairs)
                 contacts.append(new_contact)
@@ -265,7 +277,7 @@ class ContactSolver(Solver):
 
                 contacts, _ = self._solve_system(contacts, pairs, jerk_coeffs, r0, v0_rel, rf, vf_rel)
             elif elig_obs:
-                worst = min(elig_obs, key=lambda v: v[3])
+                worst = best_ro
                 robot, obs_idx, t_viol, _ = worst
                 new_obs_contact = self._init_obstacle_contact(robot, obs_idx, t_viol, segments, c_coeffs)
                 obs_contacts.append(new_obs_contact)
@@ -330,6 +342,9 @@ class ContactSolver(Solver):
                 },
                 "converged": min_dist >= self.R - self.detection_tol and min_obs_dist >= self.R - self.detection_tol,
                 "convergence_reason": reason,
+                "matching_seconds": self.matching_seconds,
+                "matching_solves": self.matching_solves,
+                "nfev": self.matching_nfev,
                 "num_contacts": len(contacts),
                 "num_obstacle_contacts": len(obs_contacts),
                 "max_contacts_single_pair": max_contacts_single_pair,
@@ -584,6 +599,7 @@ class ContactSolver(Solver):
         x0 = np.concatenate([c.to_vector() for c in contacts])
 
         # Choose solver
+        matching_start = time.perf_counter()
         if self.root_method == "fsolve":
             fsolve_kwargs = {"full_output": True}
             if self.fsolve_xtol > 0:
@@ -602,6 +618,9 @@ class ContactSolver(Solver):
             sol = res.x
             residual = np.max(np.abs(res.fun)) if len(res.fun) > 0 else 0.0
 
+        self.matching_seconds += time.perf_counter() - matching_start
+        self.matching_solves += 1
+        self.matching_nfev += int(info["nfev"] if self.root_method == "fsolve" else res.nfev)
         result_contacts = []
         for i in range(K):
             vec = sol[vars_per * i : vars_per * (i + 1)].copy()
