@@ -1,0 +1,1062 @@
+{
+  "environment": {
+    "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "osqp": "1.1.3"
+    },
+    "thread_limits": {
+      "OPENBLAS_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1"
+    }
+  },
+  "records": [
+    {
+      "case": "free",
+      "dimension": 2,
+      "n_robots": 2,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 2,
+        "num_contacts": 0,
+        "min_distance": 3.0,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 0.0,
+        "checks": {
+          "residual": 0.0,
+          "acceleration_jump": 0.0,
+          "jerk_balance": 0.0,
+          "normalization": 0.0,
+          "tangency": 0.0,
+          "endpoint_error": 0.0,
+          "minimum_mass": 0.0,
+          "minimum_knot_gap": 6.0,
+          "valid": true
+        },
+        "roots": [],
+        "intrinsic_degrees_of_freedom": 0,
+        "system_size": 0,
+        "max_contacts_single_pair": 0,
+        "matching_seconds": 0.0,
+        "matching_solves": 0,
+        "nfev": 0,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.001161959022283554,
+          "solve_time": 0.001161959022283554,
+          "postprocess_time": 0.0006624581292271614,
+          "wall_time": 0.0018247920088469982
+        }
+      },
+      "vector_acceleration_cost": 0.22222222222222227,
+      "legacy_planar": {
+        "timing": {
+          "total_time": 9.791599586606026e-05,
+          "solve_time": 9.791599586606026e-05,
+          "postprocess_time": 0.02488570800051093,
+          "wall_time": 0.025033084210008383
+        },
+        "converged": true,
+        "convergence_reason": "converged",
+        "matching_seconds": 0.0,
+        "matching_solves": 0,
+        "nfev": 0,
+        "num_contacts": 0,
+        "num_obstacle_contacts": 0,
+        "max_contacts_single_pair": 0,
+        "min_distance": 3.0
+      },
+      "legacy_acceleration_cost": 0.22222222222222227,
+      "legacy_continuous_min_distance": 3.0
+    },
+    {
+      "case": "head_on",
+      "dimension": 2,
+      "n_robots": 2,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 2,
+        "num_contacts": 1,
+        "min_distance": 1.0,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 3.0,
+        "checks": {
+          "residual": 7.401486830834376e-16,
+          "acceleration_jump": 7.401486830834376e-16,
+          "jerk_balance": 1.1102230246251565e-16,
+          "normalization": 0.0,
+          "tangency": 0.0,
+          "endpoint_error": 1.1102230246251565e-16,
+          "minimum_mass": 0.4444444444444445,
+          "minimum_knot_gap": 3.0,
+          "valid": true
+        },
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 1,
+            "nfev": 3,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "intrinsic_degrees_of_freedom": 4,
+        "system_size": 6,
+        "max_contacts_single_pair": 1,
+        "matching_seconds": 0.0005832079332321882,
+        "matching_solves": 1,
+        "nfev": 3,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.002717041177675128,
+          "solve_time": 0.002717041177675128,
+          "postprocess_time": 0.0004372089169919491,
+          "wall_time": 0.00315445801243186
+        }
+      },
+      "vector_acceleration_cost": 2.2222222222222214,
+      "legacy_planar": {
+        "timing": {
+          "total_time": 0.000981000019237399,
+          "solve_time": 0.000981000019237399,
+          "postprocess_time": 0.02526308293454349,
+          "wall_time": 0.026286499807611108
+        },
+        "converged": true,
+        "convergence_reason": "converged",
+        "matching_seconds": 0.0005415419582277536,
+        "matching_solves": 1,
+        "nfev": 4,
+        "num_contacts": 1,
+        "num_obstacle_contacts": 0,
+        "max_contacts_single_pair": 1,
+        "min_distance": 1.0000150319305565
+      },
+      "legacy_acceleration_cost": 2.2222222222222214,
+      "legacy_continuous_min_distance": 1.0
+    },
+    {
+      "case": "offset",
+      "dimension": 2,
+      "n_robots": 2,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 2,
+        "num_contacts": 1,
+        "min_distance": 0.9999999999999998,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 2.9999999999999973,
+        "checks": {
+          "residual": 4.758376928349575e-15,
+          "acceleration_jump": 7.401486830834378e-16,
+          "jerk_balance": 4.758376928349575e-15,
+          "normalization": 0.0,
+          "tangency": 9.860761315262648e-32,
+          "endpoint_error": 2.220446049250313e-16,
+          "minimum_mass": 0.2666666666666667,
+          "minimum_knot_gap": 2.9999999999999973,
+          "valid": true
+        },
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 1,
+            "nfev": 3,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "intrinsic_degrees_of_freedom": 4,
+        "system_size": 6,
+        "max_contacts_single_pair": 1,
+        "matching_seconds": 0.00040791695937514305,
+        "matching_solves": 1,
+        "nfev": 3,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.0023121668491512537,
+          "solve_time": 0.0023121668491512537,
+          "postprocess_time": 0.00063316710293293,
+          "wall_time": 0.002945624990388751
+        }
+      },
+      "vector_acceleration_cost": 1.9377777777777765,
+      "legacy_planar": {
+        "timing": {
+          "total_time": 0.0009462500456720591,
+          "solve_time": 0.0009462500456720591,
+          "postprocess_time": 0.02513233316130936,
+          "wall_time": 0.026121041970327497
+        },
+        "converged": true,
+        "convergence_reason": "converged",
+        "matching_seconds": 0.0004744171164929867,
+        "matching_solves": 1,
+        "nfev": 4,
+        "num_contacts": 1,
+        "num_obstacle_contacts": 0,
+        "max_contacts_single_pair": 1,
+        "min_distance": 1.0000162335100848
+      },
+      "legacy_acceleration_cost": 1.9377777777777774,
+      "legacy_continuous_min_distance": 0.9999999999999998
+    },
+    {
+      "case": "fleet",
+      "dimension": 2,
+      "n_robots": 3,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 2,
+        "num_contacts": 3,
+        "min_distance": 1.0,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 3.080389122608591,
+        "checks": {
+          "residual": 1.759703494030873e-13,
+          "acceleration_jump": 3.8941072588727366e-14,
+          "jerk_balance": 1.759703494030873e-13,
+          "normalization": 6.661338147750939e-16,
+          "tangency": 5.273559366969494e-16,
+          "endpoint_error": 1.7763568394002505e-15,
+          "minimum_mass": 0.025559300129036018,
+          "minimum_knot_gap": 0.6449106441840469,
+          "valid": true
+        },
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 3,
+            "nfev": 7,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 5,
+            "nfev": 11,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 3,
+            "nfev": 7,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "intrinsic_degrees_of_freedom": 24,
+        "system_size": 30,
+        "max_contacts_single_pair": 1,
+        "matching_seconds": 0.0037558330222964287,
+        "matching_solves": 3,
+        "nfev": 25,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.009362084092572331,
+          "solve_time": 0.009362084092572331,
+          "postprocess_time": 0.0006715408526360989,
+          "wall_time": 0.01003379188477993
+        }
+      },
+      "vector_acceleration_cost": 9.619125862933505,
+      "legacy_planar": {
+        "timing": {
+          "total_time": 0.008715499890968204,
+          "solve_time": 0.008715499890968204,
+          "postprocess_time": 0.038629667134955525,
+          "wall_time": 0.04738662508316338
+        },
+        "converged": true,
+        "convergence_reason": "converged",
+        "matching_seconds": 0.0057634999975562096,
+        "matching_solves": 3,
+        "nfev": 29,
+        "num_contacts": 3,
+        "num_obstacle_contacts": 0,
+        "max_contacts_single_pair": 1,
+        "min_distance": 1.0000020883702576
+      },
+      "legacy_acceleration_cost": 9.619125862933505,
+      "legacy_continuous_min_distance": 0.9999999999999999
+    },
+    {
+      "case": "free",
+      "dimension": 3,
+      "n_robots": 2,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 3,
+        "num_contacts": 0,
+        "min_distance": 3.0,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 0.0,
+        "checks": {
+          "residual": 0.0,
+          "acceleration_jump": 0.0,
+          "jerk_balance": 0.0,
+          "normalization": 0.0,
+          "tangency": 0.0,
+          "endpoint_error": 0.0,
+          "minimum_mass": 0.0,
+          "minimum_knot_gap": 6.0,
+          "valid": true
+        },
+        "roots": [],
+        "intrinsic_degrees_of_freedom": 0,
+        "system_size": 0,
+        "max_contacts_single_pair": 0,
+        "matching_seconds": 0.0,
+        "matching_solves": 0,
+        "nfev": 0,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.0008467079605907202,
+          "solve_time": 0.0008467079605907202,
+          "postprocess_time": 0.0004692920483648777,
+          "wall_time": 0.001316166017204523
+        }
+      },
+      "vector_acceleration_cost": 0.33333333333333337
+    },
+    {
+      "case": "head_on",
+      "dimension": 3,
+      "n_robots": 2,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 3,
+        "num_contacts": 1,
+        "min_distance": 1.0,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 3.0,
+        "checks": {
+          "residual": 7.401486830834376e-16,
+          "acceleration_jump": 7.401486830834376e-16,
+          "jerk_balance": 1.1102230246251565e-16,
+          "normalization": 0.0,
+          "tangency": 0.0,
+          "endpoint_error": 1.1102230246251565e-16,
+          "minimum_mass": 0.4444444444444445,
+          "minimum_knot_gap": 3.0,
+          "valid": true
+        },
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 1,
+            "nfev": 3,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "intrinsic_degrees_of_freedom": 6,
+        "system_size": 8,
+        "max_contacts_single_pair": 1,
+        "matching_seconds": 0.0003535000141710043,
+        "matching_solves": 1,
+        "nfev": 3,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.002055833814665675,
+          "solve_time": 0.002055833814665675,
+          "postprocess_time": 0.0004361660685390234,
+          "wall_time": 0.0024921249132603407
+        }
+      },
+      "vector_acceleration_cost": 2.2222222222222214
+    },
+    {
+      "case": "offset",
+      "dimension": 3,
+      "n_robots": 2,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 3,
+        "num_contacts": 1,
+        "min_distance": 0.9999999999999998,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 2.9999999999999973,
+        "checks": {
+          "residual": 4.758376928349575e-15,
+          "acceleration_jump": 7.401486830834378e-16,
+          "jerk_balance": 4.758376928349575e-15,
+          "normalization": 0.0,
+          "tangency": 9.860761315262648e-32,
+          "endpoint_error": 2.220446049250313e-16,
+          "minimum_mass": 0.2666666666666667,
+          "minimum_knot_gap": 2.9999999999999973,
+          "valid": true
+        },
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 1,
+            "nfev": 3,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "intrinsic_degrees_of_freedom": 6,
+        "system_size": 8,
+        "max_contacts_single_pair": 1,
+        "matching_seconds": 0.0002950839698314667,
+        "matching_solves": 1,
+        "nfev": 3,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.001955708023160696,
+          "solve_time": 0.001955708023160696,
+          "postprocess_time": 0.0004427919629961252,
+          "wall_time": 0.0023986250162124634
+        }
+      },
+      "vector_acceleration_cost": 1.9377777777777765
+    },
+    {
+      "case": "fleet",
+      "dimension": 3,
+      "n_robots": 3,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 3,
+        "num_contacts": 3,
+        "min_distance": 1.0000000001498603,
+        "closest_pair": [
+          0,
+          2
+        ],
+        "closest_time": 3.6712381245612296,
+        "checks": {
+          "residual": 4.579913115421164e-09,
+          "acceleration_jump": 2.3642812707613814e-10,
+          "jerk_balance": 2.1472482680806593e-09,
+          "normalization": 4.579913115421164e-09,
+          "tangency": 8.34849640807267e-10,
+          "endpoint_error": 1.7763568394002505e-15,
+          "minimum_mass": 0.24776437152334876,
+          "minimum_knot_gap": 0.5744939193023213,
+          "valid": true
+        },
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 3,
+            "nfev": 7,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 6,
+            "nfev": 13,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 5,
+            "nfev": 11,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "intrinsic_degrees_of_freedom": 36,
+        "system_size": 42,
+        "max_contacts_single_pair": 1,
+        "matching_seconds": 0.0046970839612185955,
+        "matching_solves": 3,
+        "nfev": 31,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.010095084086060524,
+          "solve_time": 0.010095084086060524,
+          "postprocess_time": 0.0007202080450952053,
+          "wall_time": 0.010815459070727229
+        }
+      },
+      "vector_acceleration_cost": 9.450383211994712
+    },
+    {
+      "case": "free",
+      "dimension": 5,
+      "n_robots": 2,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 5,
+        "num_contacts": 0,
+        "min_distance": 3.0,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 0.0,
+        "checks": {
+          "residual": 0.0,
+          "acceleration_jump": 0.0,
+          "jerk_balance": 0.0,
+          "normalization": 0.0,
+          "tangency": 0.0,
+          "endpoint_error": 0.0,
+          "minimum_mass": 0.0,
+          "minimum_knot_gap": 6.0,
+          "valid": true
+        },
+        "roots": [],
+        "intrinsic_degrees_of_freedom": 0,
+        "system_size": 0,
+        "max_contacts_single_pair": 0,
+        "matching_seconds": 0.0,
+        "matching_solves": 0,
+        "nfev": 0,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.0007672500796616077,
+          "solve_time": 0.0007672500796616077,
+          "postprocess_time": 0.0005220829043537378,
+          "wall_time": 0.0012894580140709877
+        }
+      },
+      "vector_acceleration_cost": 0.5555555555555558
+    },
+    {
+      "case": "head_on",
+      "dimension": 5,
+      "n_robots": 2,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 5,
+        "num_contacts": 1,
+        "min_distance": 1.0,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 3.0,
+        "checks": {
+          "residual": 7.401486830834376e-16,
+          "acceleration_jump": 7.401486830834376e-16,
+          "jerk_balance": 1.1102230246251565e-16,
+          "normalization": 0.0,
+          "tangency": 0.0,
+          "endpoint_error": 1.1102230246251565e-16,
+          "minimum_mass": 0.4444444444444445,
+          "minimum_knot_gap": 3.0,
+          "valid": true
+        },
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 1,
+            "nfev": 3,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "intrinsic_degrees_of_freedom": 10,
+        "system_size": 12,
+        "max_contacts_single_pair": 1,
+        "matching_seconds": 0.000295042060315609,
+        "matching_solves": 1,
+        "nfev": 3,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.001973374979570508,
+          "solve_time": 0.001973374979570508,
+          "postprocess_time": 0.000522000016644597,
+          "wall_time": 0.002495459048077464
+        }
+      },
+      "vector_acceleration_cost": 2.2222222222222214
+    },
+    {
+      "case": "offset",
+      "dimension": 5,
+      "n_robots": 2,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 5,
+        "num_contacts": 1,
+        "min_distance": 0.9999999999999998,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 2.9999999999999973,
+        "checks": {
+          "residual": 4.758376928349575e-15,
+          "acceleration_jump": 7.401486830834378e-16,
+          "jerk_balance": 4.758376928349575e-15,
+          "normalization": 0.0,
+          "tangency": 9.860761315262648e-32,
+          "endpoint_error": 2.220446049250313e-16,
+          "minimum_mass": 0.2666666666666667,
+          "minimum_knot_gap": 2.9999999999999973,
+          "valid": true
+        },
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 1,
+            "nfev": 3,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "intrinsic_degrees_of_freedom": 10,
+        "system_size": 12,
+        "max_contacts_single_pair": 1,
+        "matching_seconds": 0.00028512487187981606,
+        "matching_solves": 1,
+        "nfev": 3,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.0019319169223308563,
+          "solve_time": 0.0019319169223308563,
+          "postprocess_time": 0.0005212500691413879,
+          "wall_time": 0.0024532501120120287
+        }
+      },
+      "vector_acceleration_cost": 1.9377777777777765
+    },
+    {
+      "case": "fleet",
+      "dimension": 5,
+      "n_robots": 3,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 5,
+        "num_contacts": 3,
+        "min_distance": 1.000000000000001,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 3.0982482541131904,
+        "checks": {
+          "residual": 1.5486223414740152e-12,
+          "acceleration_jump": 3.3439917501709715e-13,
+          "jerk_balance": 1.5486223414740152e-12,
+          "normalization": 1.2656542480726785e-14,
+          "tangency": 5.662137425588298e-15,
+          "endpoint_error": 1.7763568394002505e-15,
+          "minimum_mass": 0.17540885442588514,
+          "minimum_knot_gap": 0.555435900116076,
+          "valid": true
+        },
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 5,
+            "nfev": 11,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 5,
+            "nfev": 11,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 5,
+            "nfev": 11,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "intrinsic_degrees_of_freedom": 60,
+        "system_size": 66,
+        "max_contacts_single_pair": 1,
+        "matching_seconds": 0.00527916569262743,
+        "matching_solves": 3,
+        "nfev": 33,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.01107175019569695,
+          "solve_time": 0.01107175019569695,
+          "postprocess_time": 0.0008846668060868979,
+          "wall_time": 0.011956625152379274
+        }
+      },
+      "vector_acceleration_cost": 9.313521859682847
+    },
+    {
+      "case": "free",
+      "dimension": 10,
+      "n_robots": 2,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 10,
+        "num_contacts": 0,
+        "min_distance": 3.0,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 0.0,
+        "checks": {
+          "residual": 0.0,
+          "acceleration_jump": 0.0,
+          "jerk_balance": 0.0,
+          "normalization": 0.0,
+          "tangency": 0.0,
+          "endpoint_error": 0.0,
+          "minimum_mass": 0.0,
+          "minimum_knot_gap": 6.0,
+          "valid": true
+        },
+        "roots": [],
+        "intrinsic_degrees_of_freedom": 0,
+        "system_size": 0,
+        "max_contacts_single_pair": 0,
+        "matching_seconds": 0.0,
+        "matching_solves": 0,
+        "nfev": 0,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.0008390839211642742,
+          "solve_time": 0.0008390839211642742,
+          "postprocess_time": 0.0006052081007510424,
+          "wall_time": 0.001444416819140315
+        }
+      },
+      "vector_acceleration_cost": 1.1111111111111112
+    },
+    {
+      "case": "head_on",
+      "dimension": 10,
+      "n_robots": 2,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 10,
+        "num_contacts": 1,
+        "min_distance": 1.0,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 3.0,
+        "checks": {
+          "residual": 7.401486830834376e-16,
+          "acceleration_jump": 7.401486830834376e-16,
+          "jerk_balance": 1.1102230246251565e-16,
+          "normalization": 0.0,
+          "tangency": 0.0,
+          "endpoint_error": 1.1102230246251565e-16,
+          "minimum_mass": 0.4444444444444445,
+          "minimum_knot_gap": 3.0,
+          "valid": true
+        },
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 1,
+            "nfev": 3,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "intrinsic_degrees_of_freedom": 20,
+        "system_size": 22,
+        "max_contacts_single_pair": 1,
+        "matching_seconds": 0.00030574994161725044,
+        "matching_solves": 1,
+        "nfev": 3,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.002064292086288333,
+          "solve_time": 0.002064292086288333,
+          "postprocess_time": 0.0006053328979760408,
+          "wall_time": 0.0026696668937802315
+        }
+      },
+      "vector_acceleration_cost": 2.2222222222222214
+    },
+    {
+      "case": "offset",
+      "dimension": 10,
+      "n_robots": 2,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 10,
+        "num_contacts": 1,
+        "min_distance": 0.9999999999999998,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "closest_time": 2.9999999999999973,
+        "checks": {
+          "residual": 4.758376928349575e-15,
+          "acceleration_jump": 7.401486830834378e-16,
+          "jerk_balance": 4.758376928349575e-15,
+          "normalization": 0.0,
+          "tangency": 9.860761315262648e-32,
+          "endpoint_error": 2.220446049250313e-16,
+          "minimum_mass": 0.2666666666666667,
+          "minimum_knot_gap": 2.9999999999999973,
+          "valid": true
+        },
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 1,
+            "nfev": 3,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "intrinsic_degrees_of_freedom": 20,
+        "system_size": 22,
+        "max_contacts_single_pair": 1,
+        "matching_seconds": 0.00029154191724956036,
+        "matching_solves": 1,
+        "nfev": 3,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.002010541968047619,
+          "solve_time": 0.002010541968047619,
+          "postprocess_time": 0.0006043328903615475,
+          "wall_time": 0.00261504203081131
+        }
+      },
+      "vector_acceleration_cost": 1.9377777777777765
+    },
+    {
+      "case": "fleet",
+      "dimension": 10,
+      "n_robots": 3,
+      "vector": {
+        "converged": true,
+        "status": "success",
+        "convergence_reason": "converged",
+        "dimension": 10,
+        "num_contacts": 3,
+        "min_distance": 0.9999999999999998,
+        "closest_pair": [
+          1,
+          2
+        ],
+        "closest_time": 1.9960026252893226,
+        "checks": {
+          "residual": 2.0653617704979865e-14,
+          "acceleration_jump": 6.5373054192185975e-15,
+          "jerk_balance": 2.0653617704979865e-14,
+          "normalization": 1.1102230246251565e-16,
+          "tangency": 8.673617379884035e-17,
+          "endpoint_error": 1.7763568394002505e-15,
+          "minimum_mass": 0.13312823576769153,
+          "minimum_knot_gap": 0.6126861588687929,
+          "valid": true
+        },
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 3,
+            "nfev": 7,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 4,
+            "nfev": 9,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 5,
+            "nfev": 11,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "intrinsic_degrees_of_freedom": 120,
+        "system_size": 126,
+        "max_contacts_single_pair": 1,
+        "matching_seconds": 0.005664541851729155,
+        "matching_solves": 3,
+        "nfev": 27,
+        "linear_solver": "banded Newton / sparse LSMR fallback",
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 1e-06,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.011823999928310513,
+          "solve_time": 0.011823999928310513,
+          "postprocess_time": 0.0010256250388920307,
+          "wall_time": 0.012849749997258186
+        }
+      },
+      "vector_acceleration_cost": 9.217332315202253
+    }
+  ]
+}

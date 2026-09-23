@@ -1,0 +1,19 @@
+name: vector_3d
+problem:
+  n_robots: 2
+  dimension: 3
+  time_horizon: 6.0
+  timestep: 0.1
+  min_distance: 1.0
+solver:
+  apply_velocity_bounds: false
+  sci_detection_tol: 1.0e-6
+  sci_residual_tol: 1.0e-7
+  sci_geometry_tol: 1.0e-8
+  sci_mass_tol: 1.0e-9
+  sci_min_contact_gap: 1.0e-6
+  sci_root_max_iterations: 100
+  sci_max_contacts: 20
+  sci_max_contacts_per_pair: 10
+visualization:
+  show_plots: false

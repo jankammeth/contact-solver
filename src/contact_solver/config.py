@@ -55,6 +55,8 @@ class ProblemConfig:
     timestep: float = MISSING
     min_distance: float = MISSING
     robot_radius: float = 0.4
+    # VectorContactSolver supports any dimension >= 2; legacy solvers are planar.
+    dimension: int = 2
 
     environment: EnvironmentConfig = field(default_factory=EnvironmentConfig)
     dynamics: DynamicsConfig = field(default_factory=DynamicsConfig)
@@ -98,6 +100,11 @@ class SolverConfig:
     sci_max_contacts: int = 20
     sci_max_contacts_per_pair: int = 10
     sci_min_contact_gap: float = 0.0
+    # Explicit-vector joint solver (absolute, unscaled equation tolerances).
+    sci_residual_tol: float = 1e-7
+    sci_geometry_tol: float = 1e-8
+    sci_mass_tol: float = 1e-9
+    sci_root_max_iterations: int = 100
     apply_velocity_bounds: bool = True
     timeout: float = 0.0
 

@@ -4,6 +4,11 @@ Comparison of two multi-robot trajectory optimization approaches:
 
 - **LiftedSCP**: QP-based Sequential Convex Programming
 - **ContactSolver**: Analytical piecewise cubic solver with sequential contact insertion
+- **VectorContactSolver**: Joint explicit-vector solver for spatial dimension d >= 2,
+  with analytical banded Jacobians and continuous-time acceptance checks
+
+See [general-dimensional SCI](docs/vector-sci.md) for the API, NPZ/YAML CLI,
+tolerances, validation results, and remaining Section 5.5 blockers.
 
 ## Installation
 
