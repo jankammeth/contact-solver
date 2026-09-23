@@ -29,6 +29,7 @@ dev = [
 ]
 
 [project.scripts]
+compare-joint = "contact_solver.cli.compare_joint:main"
 vector-sci = "contact_solver.cli.vector_sci:main"
 compare-solvers = "contact_solver.cli.compare_solvers:main"
 sweep-n = "contact_solver.cli.sweep_n:main"

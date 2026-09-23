@@ -1,0 +1,3915 @@
+{
+  "environment": {
+    "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "osqp": "1.1.3"
+    },
+    "thread_limits": {
+      "OPENBLAS_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1"
+    },
+    "source_sha256": {
+      "solvers/lifted_scp.py": "3ac69e965e4bfeb44ad08b97528961d78c79af17d375046653063ad08645e817",
+      "solvers/zoh_trajectory.py": "fe93b7b962278c5c2510560a2f3540bb07d1080d440d81bc96c4ae4deaa65f4f",
+      "solvers/vector_contact_solver.py": "8f3486ee729040d4d40c0fef365c579c9a5edb30450afe8470618a69a2eb70cf",
+      "solvers/vector_matching.py": "326ffe29e94e4f5e080d4224fd7ab4fb4d38a14789ab9345d5985232c3b9d358",
+      "solvers/cubic_utils.py": "87a3f47e9e671d26f24d8f7d68d2289e73e73d256aad81b163c8aae2e5caef17"
+    }
+  },
+  "records": [
+    {
+      "dimension": 2,
+      "n_robots": 2,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            3.0,
+            0.0
+          ]
+        ],
+        "final_positions": [
+          [
+            1.0,
+            1.0
+          ],
+          [
+            4.0,
+            1.0
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "collision_free_initial",
+        "numerical_converged": true,
+        "continuous_feasible": true,
+        "stopping_reason": "collision_free_initial",
+        "dimension": 2,
+        "n_timesteps": 60,
+        "system_size": 720,
+        "vars_per_timestep": 6,
+        "min_distance": 2.999999999999999,
+        "grid_min_distance": 2.9999999999999987,
+        "closest_time": 5.800000000000001,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 5.309338038661515e-16,
+          "dynamics_velocity": 7.979727989493313e-17,
+          "endpoint_error": 5.329070518200751e-15,
+          "integrated_grid_error": 5.329070518200751e-15,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.0029816250316798687,
+          "initial_trajectory_time": 0.0023021670058369637,
+          "scp_iterations_time": 2.0829029381275177e-06,
+          "validation_time": 0.004551541991531849,
+          "total_time": 0.010540208080783486,
+          "solve_time": 0.010540208080783486,
+          "average_iteration_time": 2.0829029381275177e-06
+        },
+        "scp_iterations": 0,
+        "call_wall_time": 0.010545582976192236,
+        "acceleration_cost": 0.22228396776882198,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 6.63669911096163e-16,
+            "dua_res": 1.3322676295501878e-15,
+            "run_time": 0.001461332
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 2,
+        "system_size": 0,
+        "intrinsic_degrees_of_freedom": 0,
+        "num_contacts": 0,
+        "min_distance": 3.0,
+        "closest_time": 0.0,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 0.0,
+          "acceleration_jump": 0.0,
+          "jerk_balance": 0.0,
+          "normalization": 0.0,
+          "tangency": 0.0,
+          "endpoint_error": 0.0,
+          "minimum_mass": 0.0,
+          "minimum_knot_gap": 6,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.0001591669861227274,
+          "solve_time": 0.0001591669861227274,
+          "postprocess_time": 0.0004609581083059311,
+          "wall_time": 0.0006202920340001583
+        },
+        "matching_seconds": 0.0,
+        "roots": [],
+        "call_wall_time": 0.0006252080202102661,
+        "acceleration_cost": 0.22222222222222227
+      },
+      "case": "free"
+    },
+    {
+      "dimension": 2,
+      "n_robots": 2,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            -2.0,
+            -0.2
+          ],
+          [
+            2.0,
+            0.2
+          ]
+        ],
+        "final_positions": [
+          [
+            2.0,
+            -0.2
+          ],
+          [
+            -2.0,
+            0.2
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "numerical_converged": true,
+        "continuous_feasible": true,
+        "stopping_reason": "converged",
+        "dimension": 2,
+        "n_timesteps": 60,
+        "system_size": 720,
+        "vars_per_timestep": 6,
+        "min_distance": 0.9999999999999705,
+        "grid_min_distance": 0.9999999999999993,
+        "closest_time": 3.0000000000000004,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 4.0610147623160175e-16,
+          "dynamics_velocity": 5.238864897449957e-16,
+          "endpoint_error": 1.9095836023552692e-14,
+          "integrated_grid_error": 1.9095836023552692e-14,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.0027426660526543856,
+          "initial_trajectory_time": 0.0019324999302625656,
+          "scp_iterations_time": 0.07664383319206536,
+          "validation_time": 0.005590750137344003,
+          "total_time": 0.08760287496261299,
+          "solve_time": 0.08760287496261299,
+          "average_iteration_time": 0.02554794439735512
+        },
+        "scp_iterations": 3,
+        "call_wall_time": 0.08760787500068545,
+        "acceleration_cost": 1.9384497176789222,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 4.647277981955269e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.001397541
+          },
+          {
+            "status": "solved",
+            "iter": 2625,
+            "pri_res": 9.713180862285683e-12,
+            "dua_res": 1.2633847099577663e-13,
+            "run_time": 0.058594624000000005
+          },
+          {
+            "status": "solved",
+            "iter": 225,
+            "pri_res": 5.22604975774583e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.005582457
+          },
+          {
+            "status": "solved",
+            "iter": 225,
+            "pri_res": 5.22604975774583e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.005583083000000001
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 2,
+        "system_size": 6,
+        "intrinsic_degrees_of_freedom": 4,
+        "num_contacts": 1,
+        "min_distance": 0.9999999999999998,
+        "closest_time": 2.9999999999999973,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 4.758376928349575e-15,
+          "acceleration_jump": 7.401486830834378e-16,
+          "jerk_balance": 4.758376928349575e-15,
+          "normalization": 0.0,
+          "tangency": 9.860761315262648e-32,
+          "endpoint_error": 2.220446049250313e-16,
+          "minimum_mass": 0.2666666666666667,
+          "minimum_knot_gap": 2.9999999999999973,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.0014035829808562994,
+          "solve_time": 0.0014035829808562994,
+          "postprocess_time": 0.00040820916183292866,
+          "wall_time": 0.001812125090509653
+        },
+        "matching_seconds": 0.00045162509195506573,
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 1,
+            "nfev": 3,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "call_wall_time": 0.0018176250159740448,
+        "acceleration_cost": 1.9377777777777765
+      },
+      "case": "offset"
+    },
+    {
+      "dimension": 2,
+      "n_robots": 2,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            -2.0,
+            -0.2
+          ],
+          [
+            2.0,
+            0.2
+          ]
+        ],
+        "final_positions": [
+          [
+            2.0,
+            -0.2
+          ],
+          [
+            -2.0,
+            0.2
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.2,
+            -0.1
+          ],
+          [
+            -0.15,
+            0.05
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.1,
+            0.2
+          ],
+          [
+            -0.1,
+            -0.2
+          ]
+        ]
+      },
+      "scp": {
+        "status": "continuous_infeasible",
+        "converged": false,
+        "convergence_reason": "continuous_separation_violation",
+        "numerical_converged": true,
+        "continuous_feasible": false,
+        "stopping_reason": "converged",
+        "dimension": 2,
+        "n_timesteps": 60,
+        "system_size": 720,
+        "vars_per_timestep": 6,
+        "min_distance": 0.9986900205954319,
+        "grid_min_distance": 0.9999999999999996,
+        "closest_time": 2.928319379005976,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 3.449931312848875e-16,
+          "dynamics_velocity": 2.706168622523819e-16,
+          "endpoint_error": 1.5987211554602254e-14,
+          "integrated_grid_error": 1.5987211554602254e-14,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.002765415934845805,
+          "initial_trajectory_time": 0.0019643749110400677,
+          "scp_iterations_time": 0.014444333966821432,
+          "validation_time": 0.00552470819093287,
+          "total_time": 0.025360291823744774,
+          "solve_time": 0.025360291823744774,
+          "average_iteration_time": 0.007222166983410716
+        },
+        "scp_iterations": 2,
+        "call_wall_time": 0.025364042026922107,
+        "acceleration_cost": 1.1810170867157148,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 3.663738214504559e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.001397374
+          },
+          {
+            "status": "solved",
+            "iter": 200,
+            "pri_res": 4.1478818156825747e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.005030749
+          },
+          {
+            "status": "solved",
+            "iter": 200,
+            "pri_res": 4.1459192001092197e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.004972958
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 2,
+        "system_size": 6,
+        "intrinsic_degrees_of_freedom": 4,
+        "num_contacts": 1,
+        "min_distance": 0.9999999999999999,
+        "closest_time": 2.9222970753179975,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 2.8536201179818477e-16,
+          "acceleration_jump": 1.1102230246251565e-16,
+          "jerk_balance": 2.8536201179818477e-16,
+          "normalization": 2.220446049250313e-16,
+          "tangency": 2.7755575615628914e-17,
+          "endpoint_error": 8.326672684688674e-17,
+          "minimum_mass": 0.0854987464065531,
+          "minimum_knot_gap": 2.9222970753179975,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.00143595808185637,
+          "solve_time": 0.00143595808185637,
+          "postprocess_time": 0.0003739998210221529,
+          "wall_time": 0.0018101660534739494
+        },
+        "matching_seconds": 0.0007298749405890703,
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 3,
+            "nfev": 7,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "call_wall_time": 0.0018150829710066319,
+        "acceleration_cost": 1.180858944734204
+      },
+      "case": "velocity"
+    },
+    {
+      "dimension": 2,
+      "n_robots": 3,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            3.98111001908212,
+            2.8383035914119796
+          ],
+          [
+            -2.258508805312484,
+            3.84116330367217
+          ],
+          [
+            -0.7312881561146476,
+            3.5125753187324467
+          ]
+        ],
+        "final_positions": [
+          [
+            -2.208251626139946,
+            -1.5572949721535325
+          ],
+          [
+            3.6173743480267797,
+            -2.841559057004501
+          ],
+          [
+            0.14521735818094417,
+            -1.1236334969627189
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "continuous_infeasible",
+        "converged": false,
+        "convergence_reason": "continuous_separation_violation",
+        "numerical_converged": true,
+        "continuous_feasible": false,
+        "stopping_reason": "converged",
+        "dimension": 2,
+        "n_timesteps": 60,
+        "system_size": 1080,
+        "vars_per_timestep": 6,
+        "min_distance": 0.9889420597566259,
+        "grid_min_distance": 1.0000000000000346,
+        "closest_time": 3.0499713715562935,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 2.8053731213062427e-15,
+          "dynamics_velocity": 2.7478019859472624e-15,
+          "endpoint_error": 5.1958437552457326e-14,
+          "integrated_grid_error": 5.6565863104651726e-14,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.004054374992847443,
+          "initial_trajectory_time": 0.002667082939296961,
+          "scp_iterations_time": 0.686638250015676,
+          "validation_time": 0.014936375198885798,
+          "total_time": 0.7091041670646518,
+          "solve_time": 0.7091041670646518,
+          "average_iteration_time": 0.04291489062597975
+        },
+        "scp_iterations": 16,
+        "call_wall_time": 0.7091081668622792,
+        "acceleration_cost": 9.61330343841513,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 6.981130804882512e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.002149915
+          },
+          {
+            "status": "solved",
+            "iter": 1475,
+            "pri_res": 5.083449630736324e-15,
+            "dua_res": 7.105427357601002e-15,
+            "run_time": 0.077207208
+          },
+          {
+            "status": "solved",
+            "iter": 550,
+            "pri_res": 2.7453390989888924e-15,
+            "dua_res": 7.105427357601002e-15,
+            "run_time": 0.029396291
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 2.714726399752394e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.034582083
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 2.724216352631326e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.034705833
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 2.717029976725402e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.034706082
+          },
+          {
+            "status": "solved",
+            "iter": 675,
+            "pri_res": 2.7314223534253485e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.035991207
+          },
+          {
+            "status": "solved",
+            "iter": 700,
+            "pri_res": 2.7217334356589713e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.037341665999999996
+          },
+          {
+            "status": "solved",
+            "iter": 700,
+            "pri_res": 2.730880197356574e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.037296958
+          },
+          {
+            "status": "solved",
+            "iter": 700,
+            "pri_res": 2.7237182267845177e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.037131874
+          },
+          {
+            "status": "solved",
+            "iter": 700,
+            "pri_res": 2.830461391257677e-15,
+            "dua_res": 7.105427357601002e-15,
+            "run_time": 0.03723724899999999
+          },
+          {
+            "status": "solved",
+            "iter": 700,
+            "pri_res": 2.7392911687196387e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.037136249
+          },
+          {
+            "status": "solved",
+            "iter": 700,
+            "pri_res": 2.7350832072392275e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.037689957
+          },
+          {
+            "status": "solved",
+            "iter": 700,
+            "pri_res": 2.7903524178818213e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.03749579
+          },
+          {
+            "status": "solved",
+            "iter": 700,
+            "pri_res": 2.7287029856296414e-15,
+            "dua_res": 7.105427357601002e-15,
+            "run_time": 0.037530749
+          },
+          {
+            "status": "solved",
+            "iter": 700,
+            "pri_res": 2.841141906336302e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.037418874000000005
+          },
+          {
+            "status": "solved",
+            "iter": 700,
+            "pri_res": 2.805246002228353e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.037332416
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 2,
+        "system_size": 30,
+        "intrinsic_degrees_of_freedom": 24,
+        "num_contacts": 3,
+        "min_distance": 1.0,
+        "closest_time": 3.080389122608591,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 1.759703494030873e-13,
+          "acceleration_jump": 3.8941072588727366e-14,
+          "jerk_balance": 1.759703494030873e-13,
+          "normalization": 6.661338147750939e-16,
+          "tangency": 5.273559366969494e-16,
+          "endpoint_error": 1.7763568394002505e-15,
+          "minimum_mass": 0.025559300129036018,
+          "minimum_knot_gap": 0.6449106441840469,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.006910499883815646,
+          "solve_time": 0.006910499883815646,
+          "postprocess_time": 0.0006082081235945225,
+          "wall_time": 0.007518832804635167
+        },
+        "matching_seconds": 0.0035834580194205046,
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 3,
+            "nfev": 7,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 5,
+            "nfev": 11,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 3,
+            "nfev": 7,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "call_wall_time": 0.007524999789893627,
+        "acceleration_cost": 9.619125862933505
+      },
+      "case": "fleet"
+    },
+    {
+      "dimension": 3,
+      "n_robots": 2,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            3.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_positions": [
+          [
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            4.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "collision_free_initial",
+        "numerical_converged": true,
+        "continuous_feasible": true,
+        "stopping_reason": "collision_free_initial",
+        "dimension": 3,
+        "n_timesteps": 60,
+        "system_size": 1080,
+        "vars_per_timestep": 9,
+        "min_distance": 2.999999999999999,
+        "grid_min_distance": 2.9999999999999987,
+        "closest_time": 5.800000000000001,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 5.309338038661515e-16,
+          "dynamics_velocity": 7.979727989493313e-17,
+          "endpoint_error": 5.329070518200751e-15,
+          "integrated_grid_error": 5.329070518200751e-15,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.0027848330792039633,
+          "initial_trajectory_time": 0.0026368340477347374,
+          "scp_iterations_time": 1.2081582099199295e-06,
+          "validation_time": 0.004293542122468352,
+          "total_time": 0.010302499867975712,
+          "solve_time": 0.010302499867975712,
+          "average_iteration_time": 1.2081582099199295e-06
+        },
+        "scp_iterations": 0,
+        "call_wall_time": 0.010305666830390692,
+        "acceleration_cost": 0.33342595165323297,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 6.63669911096163e-16,
+            "dua_res": 1.3322676295501878e-15,
+            "run_time": 0.00211429
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 3,
+        "system_size": 0,
+        "intrinsic_degrees_of_freedom": 0,
+        "num_contacts": 0,
+        "min_distance": 3.0,
+        "closest_time": 0.0,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 0.0,
+          "acceleration_jump": 0.0,
+          "jerk_balance": 0.0,
+          "normalization": 0.0,
+          "tangency": 0.0,
+          "endpoint_error": 0.0,
+          "minimum_mass": 0.0,
+          "minimum_knot_gap": 6,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.00012333295308053493,
+          "solve_time": 0.00012333295308053493,
+          "postprocess_time": 0.00041737500578165054,
+          "wall_time": 0.0005408329889178276
+        },
+        "matching_seconds": 0.0,
+        "roots": [],
+        "call_wall_time": 0.0005448330193758011,
+        "acceleration_cost": 0.33333333333333337
+      },
+      "case": "free"
+    },
+    {
+      "dimension": 3,
+      "n_robots": 2,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            -2.0,
+            -0.2,
+            0.0
+          ],
+          [
+            2.0,
+            0.2,
+            0.0
+          ]
+        ],
+        "final_positions": [
+          [
+            2.0,
+            -0.2,
+            0.0
+          ],
+          [
+            -2.0,
+            0.2,
+            0.0
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "numerical_converged": true,
+        "continuous_feasible": true,
+        "stopping_reason": "converged",
+        "dimension": 3,
+        "n_timesteps": 60,
+        "system_size": 1080,
+        "vars_per_timestep": 9,
+        "min_distance": 0.9999999999999705,
+        "grid_min_distance": 0.9999999999999993,
+        "closest_time": 3.0000000000000004,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 4.0610147623160175e-16,
+          "dynamics_velocity": 5.238864897449957e-16,
+          "endpoint_error": 1.9095836023552692e-14,
+          "integrated_grid_error": 1.9095836023552692e-14,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.002776334062218666,
+          "initial_trajectory_time": 0.0025356251280754805,
+          "scp_iterations_time": 0.10611470905132592,
+          "validation_time": 0.005501542007550597,
+          "total_time": 0.11758524994365871,
+          "solve_time": 0.11758524994365871,
+          "average_iteration_time": 0.035371569683775306
+        },
+        "scp_iterations": 3,
+        "call_wall_time": 0.11758854193612933,
+        "acceleration_cost": 1.938449717678922,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 4.647277981955269e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.0020776239999999997
+          },
+          {
+            "status": "solved",
+            "iter": 2625,
+            "pri_res": 9.713180862285683e-12,
+            "dua_res": 1.2633847099577663e-13,
+            "run_time": 0.083891999
+          },
+          {
+            "status": "solved",
+            "iter": 225,
+            "pri_res": 5.22604975774583e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.00795904
+          },
+          {
+            "status": "solved",
+            "iter": 225,
+            "pri_res": 5.22604975774583e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.007924582
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 3,
+        "system_size": 8,
+        "intrinsic_degrees_of_freedom": 6,
+        "num_contacts": 1,
+        "min_distance": 0.9999999999999998,
+        "closest_time": 2.9999999999999973,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 4.758376928349575e-15,
+          "acceleration_jump": 7.401486830834378e-16,
+          "jerk_balance": 4.758376928349575e-15,
+          "normalization": 0.0,
+          "tangency": 9.860761315262648e-32,
+          "endpoint_error": 2.220446049250313e-16,
+          "minimum_mass": 0.2666666666666667,
+          "minimum_knot_gap": 2.9999999999999973,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.0009995419532060623,
+          "solve_time": 0.0009995419532060623,
+          "postprocess_time": 0.0004163749981671572,
+          "wall_time": 0.0014160419814288616
+        },
+        "matching_seconds": 0.0003172080032527447,
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 1,
+            "nfev": 3,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "call_wall_time": 0.0014206250198185444,
+        "acceleration_cost": 1.9377777777777765
+      },
+      "case": "offset"
+    },
+    {
+      "dimension": 3,
+      "n_robots": 2,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            -2.0,
+            -0.2,
+            0.0
+          ],
+          [
+            2.0,
+            0.2,
+            0.0
+          ]
+        ],
+        "final_positions": [
+          [
+            2.0,
+            -0.2,
+            0.0
+          ],
+          [
+            -2.0,
+            0.2,
+            0.0
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0,
+            0.15
+          ],
+          [
+            0.0,
+            0.0,
+            -0.1
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0,
+            -0.1
+          ],
+          [
+            0.0,
+            0.0,
+            0.2
+          ]
+        ]
+      },
+      "scp": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "numerical_converged": true,
+        "continuous_feasible": true,
+        "stopping_reason": "converged",
+        "dimension": 3,
+        "n_timesteps": 60,
+        "system_size": 1080,
+        "vars_per_timestep": 9,
+        "min_distance": 0.999988987425227,
+        "grid_min_distance": 0.9999999999999997,
+        "closest_time": 2.997547628118454,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 3.2569433261464553e-16,
+          "dynamics_velocity": 3.0531133177191805e-16,
+          "endpoint_error": 1.887379141862766e-14,
+          "integrated_grid_error": 1.887379141862766e-14,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.0027811669278889894,
+          "initial_trajectory_time": 0.0025536250323057175,
+          "scp_iterations_time": 0.016712292097508907,
+          "validation_time": 0.005468707997351885,
+          "total_time": 0.028169624973088503,
+          "solve_time": 0.028169624973088503,
+          "average_iteration_time": 0.008356146048754454
+        },
+        "scp_iterations": 2,
+        "call_wall_time": 0.028172832913696766,
+        "acceleration_cost": 1.8904615053857619,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 4.647277981955269e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.002087499
+          },
+          {
+            "status": "solved",
+            "iter": 150,
+            "pri_res": 3.5569283671120447e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.006298041
+          },
+          {
+            "status": "solved",
+            "iter": 150,
+            "pri_res": 3.672138216583523e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.006299165
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 3,
+        "system_size": 8,
+        "intrinsic_degrees_of_freedom": 6,
+        "num_contacts": 1,
+        "min_distance": 1.0000000000024523,
+        "closest_time": 2.998671366922364,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 4.974933271329612e-10,
+          "acceleration_jump": 4.974933271329612e-10,
+          "jerk_balance": 5.973677108528364e-11,
+          "normalization": 4.9045212335840915e-12,
+          "tangency": 2.041769531224702e-14,
+          "endpoint_error": 2.220446049250313e-16,
+          "minimum_mass": 0.18907281768955658,
+          "minimum_knot_gap": 2.998671366922364,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.0011501670815050602,
+          "solve_time": 0.0011501670815050602,
+          "postprocess_time": 0.0004186248406767845,
+          "wall_time": 0.0015689169522374868
+        },
+        "matching_seconds": 0.0004902919754385948,
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 2,
+            "nfev": 5,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "call_wall_time": 0.0015732089523226023,
+        "acceleration_cost": 1.8898785905210795
+      },
+      "case": "velocity"
+    },
+    {
+      "dimension": 3,
+      "n_robots": 3,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            3.98111001908212,
+            2.8383035914119796,
+            0.11012624535058471
+          ],
+          [
+            -2.258508805312484,
+            3.84116330367217,
+            0.03384312766461778
+          ],
+          [
+            -0.7312881561146476,
+            3.5125753187324467,
+            -0.053997151525350354
+          ]
+        ],
+        "final_positions": [
+          [
+            -2.208251626139946,
+            -1.5572949721535325,
+            -0.1260241856852433
+          ],
+          [
+            3.6173743480267797,
+            -2.841559057004501,
+            -0.18946212698392553
+          ],
+          [
+            0.14521735818094417,
+            -1.1236334969627189,
+            0.0018638290983285614
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "continuous_infeasible",
+        "converged": false,
+        "convergence_reason": "continuous_separation_violation",
+        "numerical_converged": true,
+        "continuous_feasible": false,
+        "stopping_reason": "converged",
+        "dimension": 3,
+        "n_timesteps": 60,
+        "system_size": 1620,
+        "vars_per_timestep": 9,
+        "min_distance": 0.9971070774019681,
+        "grid_min_distance": 1.0000000000002496,
+        "closest_time": 3.6497553879048557,
+        "closest_pair": [
+          0,
+          2
+        ],
+        "checks": {
+          "dynamics_position": 6.828894817244996e-15,
+          "dynamics_velocity": 1.5265566588595902e-15,
+          "endpoint_error": 3.5083047578154947e-14,
+          "integrated_grid_error": 4.3853809472693683e-14,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.004115416901186109,
+          "initial_trajectory_time": 0.0036500839050859213,
+          "scp_iterations_time": 4.254924584180117,
+          "validation_time": 0.014643250033259392,
+          "total_time": 4.27813870809041,
+          "solve_time": 4.27813870809041,
+          "average_iteration_time": 0.10910063036359273
+        },
+        "scp_iterations": 39,
+        "call_wall_time": 4.278142666909844,
+        "acceleration_cost": 9.452120705420715,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 6.981130804882512e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.003187083
+          },
+          {
+            "status": "solved",
+            "iter": 13125,
+            "pri_res": 3.4380357683310673e-10,
+            "dua_res": 2.2048808397296252e-12,
+            "run_time": 1.041270957
+          },
+          {
+            "status": "solved",
+            "iter": 600,
+            "pri_res": 1.872611665238007e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.050218249
+          },
+          {
+            "status": "solved",
+            "iter": 625,
+            "pri_res": 1.4503661150074443e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.051688958
+          },
+          {
+            "status": "solved",
+            "iter": 3675,
+            "pri_res": 9.92498811782747e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.29396920800000004
+          },
+          {
+            "status": "solved",
+            "iter": 3850,
+            "pri_res": 1.0222270107073507e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.30704295800000003
+          },
+          {
+            "status": "solved",
+            "iter": 2100,
+            "pri_res": 8.437373609752811e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.16930916499999998
+          },
+          {
+            "status": "solved",
+            "iter": 1925,
+            "pri_res": 8.448921585352001e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.155289082
+          },
+          {
+            "status": "solved",
+            "iter": 1775,
+            "pri_res": 8.403439747825604e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.143676874
+          },
+          {
+            "status": "solved",
+            "iter": 1775,
+            "pri_res": 8.326922372132456e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.143224208
+          },
+          {
+            "status": "solved",
+            "iter": 1825,
+            "pri_res": 8.145584616536109e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.147519124
+          },
+          {
+            "status": "solved",
+            "iter": 1875,
+            "pri_res": 7.974728503105844e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.150835416
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 7.805327404472509e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.054087499
+          },
+          {
+            "status": "solved",
+            "iter": 625,
+            "pri_res": 7.72353498386202e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.051979499
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 7.43691819744022e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.054451916
+          },
+          {
+            "status": "solved",
+            "iter": 675,
+            "pri_res": 7.469591338414476e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.056513958
+          },
+          {
+            "status": "solved",
+            "iter": 575,
+            "pri_res": 7.379800566566606e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.048477165999999995
+          },
+          {
+            "status": "solved",
+            "iter": 625,
+            "pri_res": 7.226132635188726e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.052324832
+          },
+          {
+            "status": "solved",
+            "iter": 675,
+            "pri_res": 7.081808549258666e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.056417248
+          },
+          {
+            "status": "solved",
+            "iter": 600,
+            "pri_res": 7.26218535173744e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.050279791000000004
+          },
+          {
+            "status": "solved",
+            "iter": 600,
+            "pri_res": 7.0666786191425454e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.05035883199999999
+          },
+          {
+            "status": "solved",
+            "iter": 675,
+            "pri_res": 7.205792595499375e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.056283458
+          },
+          {
+            "status": "solved",
+            "iter": 600,
+            "pri_res": 7.083592652124697e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.050398416
+          },
+          {
+            "status": "solved",
+            "iter": 550,
+            "pri_res": 7.164135589409867e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.046363707
+          },
+          {
+            "status": "solved",
+            "iter": 475,
+            "pri_res": 7.047110914982543e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.040920041
+          },
+          {
+            "status": "solved",
+            "iter": 550,
+            "pri_res": 7.055119309885663e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.046510791
+          },
+          {
+            "status": "solved",
+            "iter": 575,
+            "pri_res": 6.975111172411436e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.048249415999999996
+          },
+          {
+            "status": "solved",
+            "iter": 600,
+            "pri_res": 7.042559794615057e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.050211124999999995
+          },
+          {
+            "status": "solved",
+            "iter": 600,
+            "pri_res": 7.033247528425416e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.050058707
+          },
+          {
+            "status": "solved",
+            "iter": 600,
+            "pri_res": 6.922959798682785e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.049958124
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 7.064953285829501e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.054127915
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 6.971886611480633e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.053884374
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 7.100743214895146e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.054006999
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 6.840047876260952e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.053811916
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 6.8181353100171696e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.054016291
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 6.9492885053871296e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.053783249
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 6.966671786265427e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.053952957
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 7.027553719805002e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.054007915999999996
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 6.953212852129721e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.054275999
+          },
+          {
+            "status": "solved",
+            "iter": 650,
+            "pri_res": 6.787254741649596e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.054096082
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 3,
+        "system_size": 42,
+        "intrinsic_degrees_of_freedom": 36,
+        "num_contacts": 3,
+        "min_distance": 1.0000000001498603,
+        "closest_time": 3.6712381245612296,
+        "closest_pair": [
+          0,
+          2
+        ],
+        "checks": {
+          "residual": 4.579913115421164e-09,
+          "acceleration_jump": 2.3642812707613814e-10,
+          "jerk_balance": 2.1472482680806593e-09,
+          "normalization": 4.579913115421164e-09,
+          "tangency": 8.34849640807267e-10,
+          "endpoint_error": 1.7763568394002505e-15,
+          "minimum_mass": 0.24776437152334876,
+          "minimum_knot_gap": 0.5744939193023213,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.007949999999254942,
+          "solve_time": 0.007949999999254942,
+          "postprocess_time": 0.0006845409516245127,
+          "wall_time": 0.008634707890450954
+        },
+        "matching_seconds": 0.004639417165890336,
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 3,
+            "nfev": 7,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 6,
+            "nfev": 13,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 5,
+            "nfev": 11,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "call_wall_time": 0.008640167070552707,
+        "acceleration_cost": 9.450383211994712
+      },
+      "case": "fleet"
+    },
+    {
+      "dimension": 5,
+      "n_robots": 2,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            3.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_positions": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            4.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "collision_free_initial",
+        "numerical_converged": true,
+        "continuous_feasible": true,
+        "stopping_reason": "collision_free_initial",
+        "dimension": 5,
+        "n_timesteps": 60,
+        "system_size": 1800,
+        "vars_per_timestep": 15,
+        "min_distance": 2.999999999999999,
+        "grid_min_distance": 2.9999999999999987,
+        "closest_time": 5.800000000000001,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 5.309338038661515e-16,
+          "dynamics_velocity": 7.979727989493313e-17,
+          "endpoint_error": 5.329070518200751e-15,
+          "integrated_grid_error": 5.329070518200751e-15,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.0037462080363184214,
+          "initial_trajectory_time": 0.003986290888860822,
+          "scp_iterations_time": 1.166015863418579e-06,
+          "validation_time": 0.004300041822716594,
+          "total_time": 0.01261170906946063,
+          "solve_time": 0.01261170906946063,
+          "average_iteration_time": 1.166015863418579e-06
+        },
+        "scp_iterations": 0,
+        "call_wall_time": 0.01261520804837346,
+        "acceleration_cost": 0.555709919422055,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 6.63669911096163e-16,
+            "dua_res": 1.3322676295501878e-15,
+            "run_time": 0.00350675
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 5,
+        "system_size": 0,
+        "intrinsic_degrees_of_freedom": 0,
+        "num_contacts": 0,
+        "min_distance": 3.0,
+        "closest_time": 0.0,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 0.0,
+          "acceleration_jump": 0.0,
+          "jerk_balance": 0.0,
+          "normalization": 0.0,
+          "tangency": 0.0,
+          "endpoint_error": 0.0,
+          "minimum_mass": 0.0,
+          "minimum_knot_gap": 6,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.0001193750649690628,
+          "solve_time": 0.0001193750649690628,
+          "postprocess_time": 0.0005030420143157244,
+          "wall_time": 0.0006225421093404293
+        },
+        "matching_seconds": 0.0,
+        "roots": [],
+        "call_wall_time": 0.0006264578551054001,
+        "acceleration_cost": 0.5555555555555558
+      },
+      "case": "free"
+    },
+    {
+      "dimension": 5,
+      "n_robots": 2,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            -2.0,
+            -0.2,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            0.2,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_positions": [
+          [
+            2.0,
+            -0.2,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -2.0,
+            0.2,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "numerical_converged": true,
+        "continuous_feasible": true,
+        "stopping_reason": "converged",
+        "dimension": 5,
+        "n_timesteps": 60,
+        "system_size": 1800,
+        "vars_per_timestep": 15,
+        "min_distance": 0.9999999999999705,
+        "grid_min_distance": 0.9999999999999993,
+        "closest_time": 3.0000000000000004,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 4.0610147623160175e-16,
+          "dynamics_velocity": 5.238864897449957e-16,
+          "endpoint_error": 1.9095836023552692e-14,
+          "integrated_grid_error": 1.9095836023552692e-14,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.0036980409640818834,
+          "initial_trajectory_time": 0.0038905420806258917,
+          "scp_iterations_time": 0.16450408287346363,
+          "validation_time": 0.005473917117342353,
+          "total_time": 0.17821833305060863,
+          "solve_time": 0.17821833305060863,
+          "average_iteration_time": 0.05483469429115454
+        },
+        "scp_iterations": 3,
+        "call_wall_time": 0.17822187510319054,
+        "acceleration_cost": 1.938449717678922,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 4.647277981955269e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.0034546240000000003
+          },
+          {
+            "status": "solved",
+            "iter": 2625,
+            "pri_res": 9.713180862285683e-12,
+            "dua_res": 1.2633847099577663e-13,
+            "run_time": 0.132789124
+          },
+          {
+            "status": "solved",
+            "iter": 225,
+            "pri_res": 5.22604975774583e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.012574874
+          },
+          {
+            "status": "solved",
+            "iter": 225,
+            "pri_res": 5.22604975774583e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.012617207999999998
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 5,
+        "system_size": 12,
+        "intrinsic_degrees_of_freedom": 10,
+        "num_contacts": 1,
+        "min_distance": 0.9999999999999998,
+        "closest_time": 2.9999999999999973,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 4.758376928349575e-15,
+          "acceleration_jump": 7.401486830834378e-16,
+          "jerk_balance": 4.758376928349575e-15,
+          "normalization": 0.0,
+          "tangency": 9.860761315262648e-32,
+          "endpoint_error": 2.220446049250313e-16,
+          "minimum_mass": 0.2666666666666667,
+          "minimum_knot_gap": 2.9999999999999973,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.001005333848297596,
+          "solve_time": 0.001005333848297596,
+          "postprocess_time": 0.0005097910761833191,
+          "wall_time": 0.0015152089763432741
+        },
+        "matching_seconds": 0.00032158405520021915,
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 1,
+            "nfev": 3,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "call_wall_time": 0.0015197079628705978,
+        "acceleration_cost": 1.9377777777777765
+      },
+      "case": "offset"
+    },
+    {
+      "dimension": 5,
+      "n_robots": 2,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            -2.0,
+            -0.2,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            0.2,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_positions": [
+          [
+            2.0,
+            -0.2,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -2.0,
+            0.2,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0,
+            0.15,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            -0.1,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0,
+            -0.1,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.2,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "numerical_converged": true,
+        "continuous_feasible": true,
+        "stopping_reason": "converged",
+        "dimension": 5,
+        "n_timesteps": 60,
+        "system_size": 1800,
+        "vars_per_timestep": 15,
+        "min_distance": 0.999988987425227,
+        "grid_min_distance": 0.9999999999999997,
+        "closest_time": 2.997547628118454,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 3.2569433261464553e-16,
+          "dynamics_velocity": 3.0531133177191805e-16,
+          "endpoint_error": 1.887379141862766e-14,
+          "integrated_grid_error": 1.887379141862766e-14,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.0037305420264601707,
+          "initial_trajectory_time": 0.003909541992470622,
+          "scp_iterations_time": 0.0233859580475837,
+          "validation_time": 0.005454916972666979,
+          "total_time": 0.03714750008657575,
+          "solve_time": 0.03714750008657575,
+          "average_iteration_time": 0.01169297902379185
+        },
+        "scp_iterations": 2,
+        "call_wall_time": 0.03715066588483751,
+        "acceleration_cost": 1.8904615053857616,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 4.647277981955269e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.0034813739999999998
+          },
+          {
+            "status": "solved",
+            "iter": 150,
+            "pri_res": 3.5569283671120447e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.009622665
+          },
+          {
+            "status": "solved",
+            "iter": 150,
+            "pri_res": 3.672138216583523e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.009537958
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 5,
+        "system_size": 12,
+        "intrinsic_degrees_of_freedom": 10,
+        "num_contacts": 1,
+        "min_distance": 1.0000000000024523,
+        "closest_time": 2.998671366922364,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 4.974933271329612e-10,
+          "acceleration_jump": 4.974933271329612e-10,
+          "jerk_balance": 5.973677108528364e-11,
+          "normalization": 4.9045212335840915e-12,
+          "tangency": 2.041642137469435e-14,
+          "endpoint_error": 2.220446049250313e-16,
+          "minimum_mass": 0.18907281768955658,
+          "minimum_knot_gap": 2.998671366922364,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.001152541022747755,
+          "solve_time": 0.001152541022747755,
+          "postprocess_time": 0.0005009998567402363,
+          "wall_time": 0.0016537080518901348
+        },
+        "matching_seconds": 0.0004933748859912157,
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 2,
+            "nfev": 5,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "call_wall_time": 0.001657790970057249,
+        "acceleration_cost": 1.8898785905210798
+      },
+      "case": "velocity"
+    },
+    {
+      "dimension": 5,
+      "n_robots": 3,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            3.98111001908212,
+            2.8383035914119796,
+            0.11012624535058471,
+            0.03384312766461778,
+            -0.053997151525350354
+          ],
+          [
+            -2.258508805312484,
+            3.84116330367217,
+            -0.1260241856852433,
+            -0.18946212698392553,
+            0.0018638290983285614
+          ],
+          [
+            -0.7312881561146476,
+            3.5125753187324467,
+            -0.08105670995116028,
+            -0.08721559599345133,
+            -0.022196950708389104
+          ]
+        ],
+        "final_positions": [
+          [
+            -2.208251626139946,
+            -1.5572949721535325,
+            -0.0051846028132017715,
+            -0.22767828157758307,
+            0.09251465905764267
+          ],
+          [
+            3.6173743480267797,
+            -2.841559057004501,
+            -0.2026845605910026,
+            0.1859624108554347,
+            0.05905681115998625
+          ],
+          [
+            0.14521735818094417,
+            -1.1236334969627189,
+            -0.04718445181333142,
+            0.1342996537380774,
+            0.0020786461917443023
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "continuous_infeasible",
+        "converged": false,
+        "convergence_reason": "continuous_separation_violation",
+        "numerical_converged": true,
+        "continuous_feasible": false,
+        "stopping_reason": "converged",
+        "dimension": 5,
+        "n_timesteps": 60,
+        "system_size": 2700,
+        "vars_per_timestep": 15,
+        "min_distance": 0.996997102171204,
+        "grid_min_distance": 1.000000000047659,
+        "closest_time": 3.6497643415641168,
+        "closest_pair": [
+          0,
+          2
+        ],
+        "checks": {
+          "dynamics_position": 2.3319887687556218e-14,
+          "dynamics_velocity": 3.608224830031759e-15,
+          "endpoint_error": 4.973799150320701e-14,
+          "integrated_grid_error": 9.880984919163893e-14,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.005607625003904104,
+          "initial_trajectory_time": 0.005837874952703714,
+          "scp_iterations_time": 3.458707957994193,
+          "validation_time": 0.014812541892752051,
+          "total_time": 3.4857741659507155,
+          "solve_time": 3.4857741659507155,
+          "average_iteration_time": 0.18203726094706277
+        },
+        "scp_iterations": 19,
+        "call_wall_time": 3.4857782919425517,
+        "acceleration_cost": 9.314686963524327,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 6.981130804882512e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.005358332
+          },
+          {
+            "status": "solved",
+            "iter": 375,
+            "pri_res": 1.6860564588761362e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.051909708
+          },
+          {
+            "status": "solved",
+            "iter": 2075,
+            "pri_res": 8.685640689449348e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.26933625
+          },
+          {
+            "status": "solved",
+            "iter": 1100,
+            "pri_res": 4.376394998948547e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.145920582
+          },
+          {
+            "status": "solved",
+            "iter": 1675,
+            "pri_res": 3.135929105745999e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.219314374
+          },
+          {
+            "status": "solved",
+            "iter": 1050,
+            "pri_res": 2.6628345939880393e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.138946332
+          },
+          {
+            "status": "solved",
+            "iter": 1450,
+            "pri_res": 2.5137832706951795e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.190816416
+          },
+          {
+            "status": "solved",
+            "iter": 1625,
+            "pri_res": 2.42661980171358e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.21295545700000001
+          },
+          {
+            "status": "solved",
+            "iter": 1675,
+            "pri_res": 2.4209596431380693e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.219314999
+          },
+          {
+            "status": "solved",
+            "iter": 1700,
+            "pri_res": 2.366420883958623e-14,
+            "dua_res": 7.105427357601002e-15,
+            "run_time": 0.22252212400000002
+          },
+          {
+            "status": "solved",
+            "iter": 1700,
+            "pri_res": 2.3713558089699957e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.22355987500000002
+          },
+          {
+            "status": "solved",
+            "iter": 1700,
+            "pri_res": 2.336347757089627e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.22359662400000002
+          },
+          {
+            "status": "solved",
+            "iter": 1700,
+            "pri_res": 2.3608535716895165e-14,
+            "dua_res": 7.105427357601002e-15,
+            "run_time": 0.22399599899999997
+          },
+          {
+            "status": "solved",
+            "iter": 1700,
+            "pri_res": 2.3195852047770586e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.22372745699999996
+          },
+          {
+            "status": "solved",
+            "iter": 1700,
+            "pri_res": 2.3297991005302175e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.221928875
+          },
+          {
+            "status": "solved",
+            "iter": 1075,
+            "pri_res": 2.3362747437032228e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.143852666
+          },
+          {
+            "status": "solved",
+            "iter": 850,
+            "pri_res": 2.335550303320693e-14,
+            "dua_res": 7.105427357601002e-15,
+            "run_time": 0.113972332
+          },
+          {
+            "status": "solved",
+            "iter": 850,
+            "pri_res": 2.35841981664424e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.113911582
+          },
+          {
+            "status": "solved",
+            "iter": 825,
+            "pri_res": 2.3864667760941342e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.110667248
+          },
+          {
+            "status": "solved",
+            "iter": 825,
+            "pri_res": 2.3236782098863954e-14,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.110933124
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 5,
+        "system_size": 66,
+        "intrinsic_degrees_of_freedom": 60,
+        "num_contacts": 3,
+        "min_distance": 1.000000000000001,
+        "closest_time": 3.0982482541131904,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 1.5486223414740152e-12,
+          "acceleration_jump": 3.3439917501709715e-13,
+          "jerk_balance": 1.5486223414740152e-12,
+          "normalization": 1.2656542480726785e-14,
+          "tangency": 5.662137425588298e-15,
+          "endpoint_error": 1.7763568394002505e-15,
+          "minimum_mass": 0.17540885442588514,
+          "minimum_knot_gap": 0.555435900116076,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.008631542092189193,
+          "solve_time": 0.008631542092189193,
+          "postprocess_time": 0.0008033749181777239,
+          "wall_time": 0.009435042040422559
+        },
+        "matching_seconds": 0.005105041898787022,
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 5,
+            "nfev": 11,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 5,
+            "nfev": 11,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 5,
+            "nfev": 11,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "call_wall_time": 0.009441708913072944,
+        "acceleration_cost": 9.313521859682847
+      },
+      "case": "fleet"
+    },
+    {
+      "dimension": 10,
+      "n_robots": 2,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            3.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_positions": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            4.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "collision_free_initial",
+        "numerical_converged": true,
+        "continuous_feasible": true,
+        "stopping_reason": "collision_free_initial",
+        "dimension": 10,
+        "n_timesteps": 60,
+        "system_size": 3600,
+        "vars_per_timestep": 30,
+        "min_distance": 2.999999999999999,
+        "grid_min_distance": 2.9999999999999987,
+        "closest_time": 5.800000000000001,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 5.309338038661515e-16,
+          "dynamics_velocity": 7.979727989493313e-17,
+          "endpoint_error": 5.329070518200751e-15,
+          "integrated_grid_error": 5.329070518200751e-15,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.006182290846481919,
+          "initial_trajectory_time": 0.007889792090281844,
+          "scp_iterations_time": 1.2919772416353226e-06,
+          "validation_time": 0.004315375117585063,
+          "total_time": 0.018975708866491914,
+          "solve_time": 0.018975708866491914,
+          "average_iteration_time": 1.2919772416353226e-06
+        },
+        "scp_iterations": 0,
+        "call_wall_time": 0.018979040905833244,
+        "acceleration_cost": 1.11141983884411,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 6.63669911096163e-16,
+            "dua_res": 1.3322676295501878e-15,
+            "run_time": 0.007154666
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 10,
+        "system_size": 0,
+        "intrinsic_degrees_of_freedom": 0,
+        "num_contacts": 0,
+        "min_distance": 3.0,
+        "closest_time": 0.0,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 0.0,
+          "acceleration_jump": 0.0,
+          "jerk_balance": 0.0,
+          "normalization": 0.0,
+          "tangency": 0.0,
+          "endpoint_error": 0.0,
+          "minimum_mass": 0.0,
+          "minimum_knot_gap": 6,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.00011541694402694702,
+          "solve_time": 0.00011541694402694702,
+          "postprocess_time": 0.0005670411046594381,
+          "wall_time": 0.0006825830787420273
+        },
+        "matching_seconds": 0.0,
+        "roots": [],
+        "call_wall_time": 0.0006868329364806414,
+        "acceleration_cost": 1.1111111111111112
+      },
+      "case": "free"
+    },
+    {
+      "dimension": 10,
+      "n_robots": 2,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            -2.0,
+            -0.2,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            0.2,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_positions": [
+          [
+            2.0,
+            -0.2,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -2.0,
+            0.2,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "numerical_converged": true,
+        "continuous_feasible": true,
+        "stopping_reason": "converged",
+        "dimension": 10,
+        "n_timesteps": 60,
+        "system_size": 3600,
+        "vars_per_timestep": 30,
+        "min_distance": 0.9999999999999705,
+        "grid_min_distance": 0.9999999999999993,
+        "closest_time": 3.0000000000000004,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 4.0610147623160175e-16,
+          "dynamics_velocity": 5.238864897449957e-16,
+          "endpoint_error": 1.9095836023552692e-14,
+          "integrated_grid_error": 1.9095836023552692e-14,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.0060378750786185265,
+          "initial_trajectory_time": 0.007497208891436458,
+          "scp_iterations_time": 0.3111019160132855,
+          "validation_time": 0.005542875034734607,
+          "total_time": 0.33083762507885695,
+          "solve_time": 0.33083762507885695,
+          "average_iteration_time": 0.10370063867109518
+        },
+        "scp_iterations": 3,
+        "call_wall_time": 0.3308410830795765,
+        "acceleration_cost": 1.938449717678922,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 4.647277981955269e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.006981208
+          },
+          {
+            "status": "solved",
+            "iter": 2625,
+            "pri_res": 9.713180862285683e-12,
+            "dua_res": 1.2633847099577663e-13,
+            "run_time": 0.255560499
+          },
+          {
+            "status": "solved",
+            "iter": 225,
+            "pri_res": 5.22604975774583e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.024203291000000002
+          },
+          {
+            "status": "solved",
+            "iter": 225,
+            "pri_res": 5.22604975774583e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.024160708
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 10,
+        "system_size": 22,
+        "intrinsic_degrees_of_freedom": 20,
+        "num_contacts": 1,
+        "min_distance": 0.9999999999999998,
+        "closest_time": 2.9999999999999973,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 4.758376928349575e-15,
+          "acceleration_jump": 7.401486830834378e-16,
+          "jerk_balance": 4.758376928349575e-15,
+          "normalization": 0.0,
+          "tangency": 9.860761315262648e-32,
+          "endpoint_error": 2.220446049250313e-16,
+          "minimum_mass": 0.2666666666666667,
+          "minimum_knot_gap": 2.9999999999999973,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.0010614171624183655,
+          "solve_time": 0.0010614171624183655,
+          "postprocess_time": 0.0005714998114854097,
+          "wall_time": 0.0016330420039594173
+        },
+        "matching_seconds": 0.00033258297480642796,
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 1,
+            "nfev": 3,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "call_wall_time": 0.0016379591543227434,
+        "acceleration_cost": 1.9377777777777765
+      },
+      "case": "offset"
+    },
+    {
+      "dimension": 10,
+      "n_robots": 2,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            -2.0,
+            -0.2,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            0.2,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_positions": [
+          [
+            2.0,
+            -0.2,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            -2.0,
+            0.2,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0,
+            0.15,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            -0.1,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0,
+            -0.1,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.2,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "numerical_converged": true,
+        "continuous_feasible": true,
+        "stopping_reason": "converged",
+        "dimension": 10,
+        "n_timesteps": 60,
+        "system_size": 3600,
+        "vars_per_timestep": 30,
+        "min_distance": 0.999988987425227,
+        "grid_min_distance": 0.9999999999999997,
+        "closest_time": 2.997547628118454,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 3.2569433261464553e-16,
+          "dynamics_velocity": 3.0531133177191805e-16,
+          "endpoint_error": 1.887379141862766e-14,
+          "integrated_grid_error": 1.887379141862766e-14,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.006085916887968779,
+          "initial_trajectory_time": 0.00748100015334785,
+          "scp_iterations_time": 0.039952958934009075,
+          "validation_time": 0.005522292107343674,
+          "total_time": 0.05968958279117942,
+          "solve_time": 0.05968958279117942,
+          "average_iteration_time": 0.019976479467004538
+        },
+        "scp_iterations": 2,
+        "call_wall_time": 0.05969258421100676,
+        "acceleration_cost": 1.8904615053857619,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 4.647277981955269e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.0070014990000000004
+          },
+          {
+            "status": "solved",
+            "iter": 150,
+            "pri_res": 3.5569283671120447e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.017659040999999997
+          },
+          {
+            "status": "solved",
+            "iter": 150,
+            "pri_res": 3.672138216583523e-16,
+            "dua_res": 1.7763568394002505e-15,
+            "run_time": 0.017634166
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 10,
+        "system_size": 22,
+        "intrinsic_degrees_of_freedom": 20,
+        "num_contacts": 1,
+        "min_distance": 1.0000000000024523,
+        "closest_time": 2.998671366922364,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "residual": 4.974933271329612e-10,
+          "acceleration_jump": 4.974933271329612e-10,
+          "jerk_balance": 5.973677108528364e-11,
+          "normalization": 4.9045212335840915e-12,
+          "tangency": 2.0415960588771043e-14,
+          "endpoint_error": 2.220446049250313e-16,
+          "minimum_mass": 0.18907281768955658,
+          "minimum_knot_gap": 2.998671366922364,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.0012060829903930426,
+          "solve_time": 0.0012060829903930426,
+          "postprocess_time": 0.0005669170059263706,
+          "wall_time": 0.0017731660045683384
+        },
+        "matching_seconds": 0.0005094998050481081,
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 2,
+            "nfev": 5,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "call_wall_time": 0.0017772498540580273,
+        "acceleration_cost": 1.8898785905210798
+      },
+      "case": "velocity"
+    },
+    {
+      "dimension": 10,
+      "n_robots": 3,
+      "horizon": 6,
+      "timestep": 0.1,
+      "endpoints": {
+        "initial_positions": [
+          [
+            3.98111001908212,
+            2.8383035914119796,
+            0.11012624535058471,
+            0.03384312766461778,
+            -0.053997151525350354,
+            -0.1260241856852433,
+            -0.18946212698392553,
+            0.0018638290983285614,
+            -0.08105670995116028,
+            -0.08721559599345133
+          ],
+          [
+            -2.258508805312484,
+            3.84116330367217,
+            -0.022196950708389104,
+            -0.0051846028132017715,
+            -0.22767828157758307,
+            0.09251465905764267,
+            -0.2026845605910026,
+            0.1859624108554347,
+            0.05905681115998625,
+            -0.04718445181333142
+          ],
+          [
+            -0.7312881561146476,
+            3.5125753187324467,
+            0.1342996537380774,
+            0.0020786461917443023,
+            0.06909209676232841,
+            0.010722707944720508,
+            0.1096531380130275,
+            0.10614224543758295,
+            -0.09073341413930658,
+            -0.06124917784436158
+          ]
+        ],
+        "final_positions": [
+          [
+            -2.208251626139946,
+            -1.5572949721535325,
+            0.03432270521124315,
+            -0.021001015163517062,
+            -0.22849142165544511,
+            0.20261175349217764,
+            -0.2174977373868806,
+            -0.20815428537447642,
+            -0.12761124197329385,
+            0.056485124044634585
+          ],
+          [
+            3.6173743480267797,
+            -2.841559057004501,
+            0.1796012506630271,
+            -0.02354150525900867,
+            -0.039107735054450414,
+            0.017390146428778723,
+            -0.03668597432540227,
+            0.008236522460221348,
+            -0.11399714593630075,
+            0.04382574326197661
+          ],
+          [
+            0.14521735818094417,
+            -1.1236334969627189,
+            0.039257939815601536,
+            -0.24354174163439515,
+            -0.011022594532382895,
+            0.01629158176758485,
+            0.05612247602630475,
+            -0.08160897564397011,
+            -0.13280342642624957,
+            -0.09507340805091576
+          ]
+        ],
+        "initial_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "final_velocities": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "scp": {
+        "status": "continuous_infeasible",
+        "converged": false,
+        "convergence_reason": "continuous_separation_violation",
+        "numerical_converged": true,
+        "continuous_feasible": false,
+        "stopping_reason": "converged",
+        "dimension": 10,
+        "n_timesteps": 60,
+        "system_size": 5400,
+        "vars_per_timestep": 30,
+        "min_distance": 0.9885541655524034,
+        "grid_min_distance": 1.0000000000445048,
+        "closest_time": 3.0499733910927946,
+        "closest_pair": [
+          0,
+          1
+        ],
+        "checks": {
+          "dynamics_position": 7.572067972638763e-16,
+          "dynamics_velocity": 8.881784197001252e-16,
+          "endpoint_error": 3.3306690738754696e-14,
+          "integrated_grid_error": 3.3306690738754696e-14,
+          "bounds": {
+            "position": 0.0,
+            "velocity": 0.0,
+            "acceleration": 0.0,
+            "discrete_jerk": 0.0
+          },
+          "state_valid": true,
+          "bounds_valid": true,
+          "valid": true
+        },
+        "tolerances": {
+          "separation": 0.001,
+          "validation": 1e-05
+        },
+        "timing": {
+          "precompute_constraints_time": 0.009049832820892334,
+          "initial_trajectory_time": 0.011311041889712214,
+          "scp_iterations_time": 2.856326707871631,
+          "validation_time": 0.01480387500487268,
+          "total_time": 2.8922756251413375,
+          "solve_time": 2.8922756251413375,
+          "average_iteration_time": 0.11901361282798462
+        },
+        "scp_iterations": 24,
+        "call_wall_time": 2.8922795408871025,
+        "acceleration_cost": 9.216662871348829,
+        "qp_solves": [
+          {
+            "status": "solved",
+            "iter": 50,
+            "pri_res": 6.981130804882512e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.01074554
+          },
+          {
+            "status": "solved",
+            "iter": 250,
+            "pri_res": 1.1436556707753672e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.06901208299999999
+          },
+          {
+            "status": "solved",
+            "iter": 250,
+            "pri_res": 1.2491210529724195e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.069404958
+          },
+          {
+            "status": "solved",
+            "iter": 400,
+            "pri_res": 9.516790645632853e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.10551737400000001
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 1.022623352282382e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.11801479100000001
+          },
+          {
+            "status": "solved",
+            "iter": 475,
+            "pri_res": 9.351910199125433e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.12440304
+          },
+          {
+            "status": "solved",
+            "iter": 475,
+            "pri_res": 9.348392287647471e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.12456341600000001
+          },
+          {
+            "status": "solved",
+            "iter": 475,
+            "pri_res": 1.1426895597552093e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.124477124
+          },
+          {
+            "status": "solved",
+            "iter": 475,
+            "pri_res": 9.567079191320178e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.12354079100000001
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 8.809007505625225e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.117585749
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 1.2007489034675054e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.11828191499999999
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 1.2222634257859968e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.118089207
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 1.0311667496294783e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.117996916
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 8.767490903344572e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.117629374
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 9.724100625650117e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.117860916
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 9.64581649897508e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.118024583
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 1.0346905098683237e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.117861373
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 1.0344669901387513e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.116979999
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 9.059265965152838e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.117331541
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 8.887369866561993e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.11737466499999999
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 1.129968420942251e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.117505416
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 1.0060377986035155e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.11743366599999999
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 1.0456019549334705e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.117047082
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 1.133761439543053e-15,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.11799616600000001
+          },
+          {
+            "status": "solved",
+            "iter": 450,
+            "pri_res": 8.757369949100614e-16,
+            "dua_res": 3.552713678800501e-15,
+            "run_time": 0.125590457
+          }
+        ]
+      },
+      "sci": {
+        "status": "success",
+        "converged": true,
+        "convergence_reason": "converged",
+        "dimension": 10,
+        "system_size": 126,
+        "intrinsic_degrees_of_freedom": 120,
+        "num_contacts": 3,
+        "min_distance": 0.9999999999999998,
+        "closest_time": 1.9960026252893226,
+        "closest_pair": [
+          1,
+          2
+        ],
+        "checks": {
+          "residual": 2.0653617704979865e-14,
+          "acceleration_jump": 6.5373054192185975e-15,
+          "jerk_balance": 2.0653617704979865e-14,
+          "normalization": 1.1102230246251565e-16,
+          "tangency": 8.673617379884035e-17,
+          "endpoint_error": 1.7763568394002505e-15,
+          "minimum_mass": 0.13312823576769153,
+          "minimum_knot_gap": 0.6126861588687929,
+          "valid": true
+        },
+        "tolerances": {
+          "residual": 1e-07,
+          "geometry": 1e-08,
+          "mass": 1e-09,
+          "separation": 0.001,
+          "minimum_knot_gap": 6e-06
+        },
+        "timing": {
+          "total_time": 0.009612624999135733,
+          "solve_time": 0.009612624999135733,
+          "postprocess_time": 0.0009136248845607042,
+          "wall_time": 0.010526333004236221
+        },
+        "matching_seconds": 0.005676375003531575,
+        "roots": [
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 3,
+            "nfev": 7,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 4,
+            "nfev": 9,
+            "sparse_fallbacks": 0
+          },
+          {
+            "success": true,
+            "message": "residual_satisfied",
+            "iterations": 5,
+            "nfev": 11,
+            "sparse_fallbacks": 0
+          }
+        ],
+        "call_wall_time": 0.010532791959121823,
+        "acceleration_cost": 9.217332315202253
+      },
+      "case": "fleet"
+    }
+  ]
+}

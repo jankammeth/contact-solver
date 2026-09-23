@@ -164,16 +164,16 @@ See [the validation report](../validation/vector-validation.md) and
 
 The comparison infrastructure still needs work before the 600-instance campaign:
 
-- `LiftedSCP` fixes six variables per robot/timestep and x/y indices;
-  base endpoint setters and its dynamics/collision assembly are planar.
+- Joint `LiftedSCP` now supports general dimensions and continuous validation of
+  its held-acceleration model; see [its guide](lifted-scp.md) and the
+  [current joint validation report](../validation/lifted-dimension-validation.md).
 - Scenario generators use circles/discs and `(N,2)` arrays. Implement the stated
   uniform d-ball endpoints with radius `5*(N/2)**(1/d)`, endpoint rejection rules,
   fixed seeds, and identical saved input instances for both solvers.
 - Existing `compare_solvers`, `sweep_n`, plotting, and manuscript experiment
   runners have no dimension sweep/schema. Add dimension, initial interacting-pair
   counts, both matching counts, continuous separation, cost, and failure categories.
-- Extend/validate the comparison solver and its continuous-time interpretation,
-  then run bounded larger-fleet pilots for conditioning, memory, caps, and timeouts.
+- Run bounded larger-fleet pilots for conditioning, memory, caps, and timeouts.
   The current small cases establish functionality, not scaling at N=16/32/64.
 - Repair the pre-existing test-suite collection/configuration defects before using
   a full green suite as the campaign gate. Check repeated timings and choose common

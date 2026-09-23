@@ -8,11 +8,17 @@ from ..config import Config
 
 
 class Solver(ABC):
+    # Opt in to the general-dimensional base endpoint setters. VectorContactSolver
+    # has its own setters. Legacy and prioritized solvers retain planar guards.
+    supports_nd_states = False
 
     def __init__(self, config: Config):
         self.config = config
 
         self.N = config.problem.n_robots
+        self.d = config.problem.dimension
+        if not isinstance(self.d, int) or self.d < 2:
+            raise ValueError("problem.dimension must be an integer >= 2")
         self.h = config.problem.timestep
         self.R = config.problem.min_distance
 
@@ -22,8 +28,7 @@ class Solver(ABC):
         self.T_MULTIPLIER = 1.0
 
         # Environment limits (None = unconstrained)
-        self.pos_min = config.problem.environment.pos_min
-        self.pos_max = config.problem.environment.pos_max
+        self.pos_min, self.pos_max = config.problem.environment.bounds(self.d)
 
         # Dynamics limits (None = unconstrained)
         self.vel_min = config.problem.dynamics.vel_min
@@ -40,22 +45,12 @@ class Solver(ABC):
         self.trajectories = None
 
     def set_initial_states(self, positions, velocities=None):
-        if velocities is None:
-            velocities = np.zeros((self.N, 2))
-
-        self.initial_positions = np.asarray(positions).flatten()
-        self.initial_velocities = np.asarray(velocities).flatten()
-
-        assert len(self.initial_positions) == len(self.initial_velocities) == 2 * self.N
+        self.initial_positions, self.initial_velocities = self._endpoint_states(
+            positions, velocities
+        )
 
     def set_final_states(self, positions, velocities=None):
-        if velocities is None:
-            velocities = np.zeros((self.N, 2))
-
-        self.final_positions = np.asarray(positions).flatten()
-        self.final_velocities = np.asarray(velocities).flatten()
-
-        assert len(self.final_positions) == len(self.final_velocities) == 2 * self.N
+        self.final_positions, self.final_velocities = self._endpoint_states(positions, velocities)
 
         if self.T is None:
             if self.initial_positions is None:
@@ -63,9 +58,25 @@ class Solver(ABC):
             self.T = self._auto_time_horizon()
             self.K = int(round(self.T / self.h))
 
+    def _endpoint_states(self, positions, velocities):
+        if self.d != 2 and not self.supports_nd_states:
+            raise ValueError(f"{type(self).__name__} supports only dimension=2")
+        positions = np.asarray(positions, dtype=float)
+        velocities = (
+            np.zeros_like(positions) if velocities is None else np.asarray(velocities, dtype=float)
+        )
+        shapes = ((self.N, self.d), (self.N * self.d,))
+        if positions.shape not in shapes or velocities.shape not in shapes:
+            raise ValueError(
+                f"Expected endpoint positions/velocities of shape ({self.N}, {self.d}) or flattened"
+            )
+        if not np.all(np.isfinite(positions)) or not np.all(np.isfinite(velocities)):
+            raise ValueError("Endpoint states must be finite")
+        return positions.ravel().copy(), velocities.ravel().copy()
+
     def _auto_time_horizon(self) -> float:
-        initial = self.initial_positions.reshape(-1, 2)
-        final = self.final_positions.reshape(-1, 2)
+        initial = self.initial_positions.reshape(-1, self.d)
+        final = self.final_positions.reshape(-1, self.d)
 
         distances = np.linalg.norm(final - initial, axis=1)
         max_distance = distances.max()

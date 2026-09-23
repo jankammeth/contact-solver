@@ -3,42 +3,72 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from typing import Optional
-
 import numpy as np
 from omegaconf import MISSING, OmegaConf
 
 
 @dataclass
 class EnvironmentConfig:
-    pos_x_min: Optional[float] = None
-    pos_x_max: Optional[float] = None
-    pos_y_min: Optional[float] = None
-    pos_y_max: Optional[float] = None
+    pos_x_min: float | None = None
+    pos_x_max: float | None = None
+    pos_y_min: float | None = None
+    pos_y_max: float | None = None
+    # Full-dimensional alternatives to the legacy x/y fields; do not mix them.
+    position_lower: list[float] | None = None
+    position_upper: list[float] | None = None
+
+    def bounds(self, dimension: int) -> tuple[np.ndarray, np.ndarray]:
+        if dimension < 2:
+            raise ValueError("Position bounds require dimension >= 2")
+        legacy = (self.pos_x_min, self.pos_y_min, self.pos_x_max, self.pos_y_max)
+        if (self.position_lower is not None or self.position_upper is not None) and any(
+            value is not None for value in legacy
+        ):
+            raise ValueError("Do not mix position_lower/upper with legacy x/y bounds")
+        lower, upper = np.full(dimension, -np.inf), np.full(dimension, np.inf)
+        for axis, value in enumerate(legacy[:2]):
+            if value is not None:
+                lower[axis] = value
+        for axis, value in enumerate(legacy[2:]):
+            if value is not None:
+                upper[axis] = value
+        for values, target in ((self.position_lower, lower), (self.position_upper, upper)):
+            if values is not None:
+                array = np.asarray(values, dtype=float)
+                if array.shape != (dimension,):
+                    raise ValueError("Position bounds must have one entry per spatial dimension")
+                target[:] = array
+        if np.any(np.isnan(lower)) or np.any(np.isnan(upper)) or np.any(lower > upper):
+            raise ValueError("Invalid position bounds")
+        return lower, upper
 
     @property
     def pos_min(self) -> np.ndarray:
-        return np.array([
-            self.pos_x_min if self.pos_x_min is not None else -np.inf,
-            self.pos_y_min if self.pos_y_min is not None else -np.inf,
-        ])
+        dimension = len(
+            self.position_lower
+            if self.position_lower is not None
+            else self.position_upper if self.position_upper is not None else [0, 0]
+        )
+        return self.bounds(dimension)[0]
 
     @property
     def pos_max(self) -> np.ndarray:
-        return np.array([
-            self.pos_x_max if self.pos_x_max is not None else np.inf,
-            self.pos_y_max if self.pos_y_max is not None else np.inf,
-        ])
+        dimension = len(
+            self.position_lower
+            if self.position_lower is not None
+            else self.position_upper if self.position_upper is not None else [0, 0]
+        )
+        return self.bounds(dimension)[1]
 
 
 @dataclass
 class DynamicsConfig:
-    vel_min: Optional[float] = None
-    vel_max: Optional[float] = None
-    acc_min: Optional[float] = None
-    acc_max: Optional[float] = None
-    jerk_min: Optional[float] = None
-    jerk_max: Optional[float] = None
+    vel_min: float | None = None
+    vel_max: float | None = None
+    acc_min: float | None = None
+    acc_max: float | None = None
+    jerk_min: float | None = None
+    jerk_max: float | None = None
 
 
 @dataclass
@@ -55,7 +85,7 @@ class ProblemConfig:
     timestep: float = MISSING
     min_distance: float = MISSING
     robot_radius: float = 0.4
-    # VectorContactSolver supports any dimension >= 2; legacy solvers are planar.
+    # LiftedSCP and VectorContactSolver support any dimension >= 2.
     dimension: int = 2
 
     environment: EnvironmentConfig = field(default_factory=EnvironmentConfig)
@@ -73,8 +103,10 @@ class ProblemConfig:
 class SolverConfig:
     # ── Detection: what counts as a collision ────────────────
     # A pair at distance d violates if d < min_distance - detection_tol.
-    # SCP: buffer in discrete-time KDTree check (iteration + post-hoc)
+    # SCP: distance allowance in the grid check and joint continuous validation.
     scp_detection_tol: float = 0.0
+    # LiftedSCP: absolute unscaled state/dynamics/bound acceptance tolerance.
+    scp_validation_tol: float = 1e-5
     # SCI: threshold for continuous-time violation search; also defines
     #      convergence (solver stops when no violations remain)
     sci_detection_tol: float = 0.0

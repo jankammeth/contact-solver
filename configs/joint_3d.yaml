@@ -1,0 +1,20 @@
+name: joint_3d
+problem:
+  n_robots: 2
+  dimension: 3
+  time_horizon: 6.0
+  timestep: 0.1
+  min_distance: 1.0
+solver:
+  apply_velocity_bounds: false
+  scp_detection_tol: 1.0e-3
+  sci_detection_tol: 1.0e-3
+  scp_validation_tol: 1.0e-5
+  scp_convergence_abs: 1.0e-5
+  osqp_eps_abs: 1.0e-7
+  osqp_eps_rel: 1.0e-7
+  osqp_max_iter: 20000
+  scp_max_iterations: 50
+  timeout: 30.0
+visualization:
+  show_plots: false
