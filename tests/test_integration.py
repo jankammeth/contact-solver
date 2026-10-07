@@ -46,7 +46,7 @@ def make_config(n_robots: int = 3, time_horizon: float = 5.0, seed: int = 42) ->
             ),
             scenario=ScenarioConfig(cluster_radius=3.0, cluster_margin=1.0, spacing=0.8),
         ),
-        solver=SolverConfig(scp_max_iterations=20, max_contacts=15),
+        solver=SolverConfig(scp_max_iterations=20),
         visualization=VisualizationConfig(show_plots=False),
     )
 

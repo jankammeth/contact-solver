@@ -1,0 +1,646 @@
+{
+  "description": "Saved fleet N=20, seeds 0-4, one warmup then five alternating timed runs; single-thread limits; solve time excludes sampled postprocessing.",
+  "records": [
+    {
+      "seed": 0,
+      "instance_id": "8cb2911097a061b96f19",
+      "input_sha256": "b4ad9bff2e62c621bf85d5027ccfd04aace94ae63423c89f8ad76f3db77d3650",
+      "config": {
+        "name": "sweep_n",
+        "description": "Base configuration for N-robot sweep experiments",
+        "random_seed": 0,
+        "problem": {
+          "n_robots": 20,
+          "time_horizon": 31.622776601683796,
+          "timestep": 0.15811388300841897,
+          "min_distance": 0.5,
+          "robot_radius": 0.25,
+          "dimension": 2,
+          "environment": {
+            "pos_x_min": null,
+            "pos_x_max": null,
+            "pos_y_min": null,
+            "pos_y_max": null,
+            "position_lower": null,
+            "position_upper": null
+          },
+          "dynamics": {
+            "vel_min": null,
+            "vel_max": null,
+            "acc_min": null,
+            "acc_max": null,
+            "jerk_min": null,
+            "jerk_max": null
+          },
+          "scenario": {
+            "cluster_radius": 5.0,
+            "cluster_margin": 1.5,
+            "spacing": 0.8
+          }
+        },
+        "solver": {
+          "scp_detection_tol": 0.001,
+          "scp_validation_tol": 1e-05,
+          "sci_detection_tol": 0.001,
+          "scp_convergence_rel": 0.01,
+          "scp_convergence_abs": 0.01,
+          "osqp_eps_abs": 0.0001,
+          "osqp_eps_rel": 0.0,
+          "fsolve_xtol": 0.0,
+          "scp_max_iterations": 20,
+          "osqp_max_iter": 10000,
+          "osqp_polish": true,
+          "osqp_warm_start": true,
+          "osqp_verbose": false,
+          "sci_max_contacts": 30,
+          "sci_max_contacts_per_pair": 10,
+          "sci_min_contact_gap": 0.0,
+          "sci_residual_tol": 1e-07,
+          "sci_geometry_tol": 1e-08,
+          "sci_mass_tol": 1e-09,
+          "sci_root_max_iterations": 100,
+          "apply_velocity_bounds": false,
+          "timeout": 300.0,
+          "prio_scp_normalize_obstacles": true,
+          "use_analytical_jacobian": true,
+          "root_method": "hybr",
+          "vectorize_residuals": true,
+          "vectorize_postprocess": true
+        },
+        "visualization": {
+          "show_plots": false,
+          "save_plots": false,
+          "output_dir": "outputs",
+          "dpi": 150,
+          "figsize": [
+            10,
+            10
+          ]
+        }
+      },
+      "historical_runtime": 0.47814204194583,
+      "legacy": {
+        "times_s": [
+          0.9309466672129929,
+          0.9067472501192242,
+          0.7500451670493931,
+          0.7365282501559705,
+          0.7422358328476548
+        ],
+        "median_s": 0.7500451670493931,
+        "success": true,
+        "reason": "converged",
+        "contacts": 6,
+        "continuous_minimum": 0.4999999999999998,
+        "cost": 1.8846435009730316,
+        "matching_seconds": 0.30771733494475484,
+        "checks": null
+      },
+      "vector": {
+        "times_s": [
+          0.40787191689014435,
+          0.3802768748719245,
+          0.3630477499682456,
+          0.34445654205046594,
+          0.35289287520572543
+        ],
+        "median_s": 0.3630477499682456,
+        "success": true,
+        "reason": "converged",
+        "contacts": 6,
+        "continuous_minimum": 0.4999999999999996,
+        "cost": 1.8846435009730307,
+        "matching_seconds": 0.028725374955683947,
+        "checks": {
+          "residual": 1.762412264738611e-12,
+          "acceleration_jump": 1.0283440765590512e-12,
+          "jerk_balance": 1.762412264738611e-12,
+          "normalization": 8.837375276016246e-14,
+          "tangency": 1.9817480989559044e-14,
+          "endpoint_error": 3.552713678800501e-15,
+          "minimum_mass": 0.0002849074800410461,
+          "minimum_knot_gap": 0.9569479624836248,
+          "valid": true
+        }
+      },
+      "max_position_difference": 1.4495779611716877e-10,
+      "speedup": 2.065968366736873
+    },
+    {
+      "seed": 1,
+      "instance_id": "715365d31bb6a8854ce5",
+      "input_sha256": "f8ac5f6ecbf302cc04cfa8e2ad4ba04affb373b2cdda8f09391b3655dfb9662c",
+      "config": {
+        "name": "sweep_n",
+        "description": "Base configuration for N-robot sweep experiments",
+        "random_seed": 1,
+        "problem": {
+          "n_robots": 20,
+          "time_horizon": 31.622776601683796,
+          "timestep": 0.15811388300841897,
+          "min_distance": 0.5,
+          "robot_radius": 0.25,
+          "dimension": 2,
+          "environment": {
+            "pos_x_min": null,
+            "pos_x_max": null,
+            "pos_y_min": null,
+            "pos_y_max": null,
+            "position_lower": null,
+            "position_upper": null
+          },
+          "dynamics": {
+            "vel_min": null,
+            "vel_max": null,
+            "acc_min": null,
+            "acc_max": null,
+            "jerk_min": null,
+            "jerk_max": null
+          },
+          "scenario": {
+            "cluster_radius": 5.0,
+            "cluster_margin": 1.5,
+            "spacing": 0.8
+          }
+        },
+        "solver": {
+          "scp_detection_tol": 0.001,
+          "scp_validation_tol": 1e-05,
+          "sci_detection_tol": 0.001,
+          "scp_convergence_rel": 0.01,
+          "scp_convergence_abs": 0.01,
+          "osqp_eps_abs": 0.0001,
+          "osqp_eps_rel": 0.0,
+          "fsolve_xtol": 0.0,
+          "scp_max_iterations": 20,
+          "osqp_max_iter": 10000,
+          "osqp_polish": true,
+          "osqp_warm_start": true,
+          "osqp_verbose": false,
+          "sci_max_contacts": 30,
+          "sci_max_contacts_per_pair": 10,
+          "sci_min_contact_gap": 0.0,
+          "sci_residual_tol": 1e-07,
+          "sci_geometry_tol": 1e-08,
+          "sci_mass_tol": 1e-09,
+          "sci_root_max_iterations": 100,
+          "apply_velocity_bounds": false,
+          "timeout": 300.0,
+          "prio_scp_normalize_obstacles": true,
+          "use_analytical_jacobian": true,
+          "root_method": "hybr",
+          "vectorize_residuals": true,
+          "vectorize_postprocess": true
+        },
+        "visualization": {
+          "show_plots": false,
+          "save_plots": false,
+          "output_dir": "outputs",
+          "dpi": 150,
+          "figsize": [
+            10,
+            10
+          ]
+        }
+      },
+      "historical_runtime": 0.1259681659284979,
+      "legacy": {
+        "times_s": [
+          0.1862256668973714,
+          0.1851716658566147,
+          0.1882582081016153,
+          0.18529358296655118,
+          0.18782970891334116
+        ],
+        "median_s": 0.1862256668973714,
+        "success": true,
+        "reason": "converged",
+        "contacts": 3,
+        "continuous_minimum": 0.49999999999999944,
+        "cost": 1.3710220978513594,
+        "matching_seconds": 0.03415541700087488,
+        "checks": null
+      },
+      "vector": {
+        "times_s": [
+          0.13603670801967382,
+          0.12710945797152817,
+          0.12543795816600323,
+          0.12293258286081254,
+          0.1235436659771949
+        ],
+        "median_s": 0.12543795816600323,
+        "success": true,
+        "reason": "converged",
+        "contacts": 3,
+        "continuous_minimum": 0.49999999999999994,
+        "cost": 1.3710220978513599,
+        "matching_seconds": 0.007278332253918052,
+        "checks": {
+          "residual": 5.0001140380895315e-12,
+          "acceleration_jump": 4.1164827623008104e-12,
+          "jerk_balance": 5.0001140380895315e-12,
+          "normalization": 2.3070434451710753e-13,
+          "tangency": 9.592326932761353e-14,
+          "endpoint_error": 5.329070518200751e-15,
+          "minimum_mass": 0.001317632366051961,
+          "minimum_knot_gap": 2.142862802716591,
+          "valid": true
+        }
+      },
+      "max_position_difference": 8.84350510825208e-09,
+      "speedup": 1.4846037803877705
+    },
+    {
+      "seed": 2,
+      "instance_id": "06561d4e6aaa586794c3",
+      "input_sha256": "82ebc2310f1fc8c45776f02ac8db258aa63b6a43d3b7278937447e1ad3fb36d6",
+      "config": {
+        "name": "sweep_n",
+        "description": "Base configuration for N-robot sweep experiments",
+        "random_seed": 2,
+        "problem": {
+          "n_robots": 20,
+          "time_horizon": 31.622776601683796,
+          "timestep": 0.15811388300841897,
+          "min_distance": 0.5,
+          "robot_radius": 0.25,
+          "dimension": 2,
+          "environment": {
+            "pos_x_min": null,
+            "pos_x_max": null,
+            "pos_y_min": null,
+            "pos_y_max": null,
+            "position_lower": null,
+            "position_upper": null
+          },
+          "dynamics": {
+            "vel_min": null,
+            "vel_max": null,
+            "acc_min": null,
+            "acc_max": null,
+            "jerk_min": null,
+            "jerk_max": null
+          },
+          "scenario": {
+            "cluster_radius": 5.0,
+            "cluster_margin": 1.5,
+            "spacing": 0.8
+          }
+        },
+        "solver": {
+          "scp_detection_tol": 0.001,
+          "scp_validation_tol": 1e-05,
+          "sci_detection_tol": 0.001,
+          "scp_convergence_rel": 0.01,
+          "scp_convergence_abs": 0.01,
+          "osqp_eps_abs": 0.0001,
+          "osqp_eps_rel": 0.0,
+          "fsolve_xtol": 0.0,
+          "scp_max_iterations": 20,
+          "osqp_max_iter": 10000,
+          "osqp_polish": true,
+          "osqp_warm_start": true,
+          "osqp_verbose": false,
+          "sci_max_contacts": 30,
+          "sci_max_contacts_per_pair": 10,
+          "sci_min_contact_gap": 0.0,
+          "sci_residual_tol": 1e-07,
+          "sci_geometry_tol": 1e-08,
+          "sci_mass_tol": 1e-09,
+          "sci_root_max_iterations": 100,
+          "apply_velocity_bounds": false,
+          "timeout": 300.0,
+          "prio_scp_normalize_obstacles": true,
+          "use_analytical_jacobian": true,
+          "root_method": "hybr",
+          "vectorize_residuals": true,
+          "vectorize_postprocess": true
+        },
+        "visualization": {
+          "show_plots": false,
+          "save_plots": false,
+          "output_dir": "outputs",
+          "dpi": 150,
+          "figsize": [
+            10,
+            10
+          ]
+        }
+      },
+      "historical_runtime": 0.4189991250168532,
+      "legacy": {
+        "times_s": [
+          0.6096727910917252,
+          0.6088209159206599,
+          0.6037144591100514,
+          0.6074977919925004,
+          0.6071877081412822
+        ],
+        "median_s": 0.6074977919925004,
+        "success": true,
+        "reason": "converged",
+        "contacts": 4,
+        "continuous_minimum": 0.49999999999999856,
+        "cost": 1.5534280699302707,
+        "matching_seconds": 0.3804252501577139,
+        "checks": null
+      },
+      "vector": {
+        "times_s": [
+          0.4720816670451313,
+          0.47369383298791945,
+          0.46597816701978445,
+          0.46661337511613965,
+          0.4722619999665767
+        ],
+        "median_s": 0.4720816670451313,
+        "success": false,
+        "reason": "iteration_limit",
+        "contacts": 4,
+        "continuous_minimum": 0.5000017649803618,
+        "cost": 1.7723737166025464,
+        "matching_seconds": 0.29862804198637605,
+        "checks": {
+          "residual": 1.941151871848106,
+          "acceleration_jump": 0.439824603866212,
+          "jerk_balance": 1.941151871848106,
+          "normalization": 0.1467139280849099,
+          "tangency": 0.019190735727719344,
+          "endpoint_error": 5.329070518200751e-15,
+          "minimum_mass": 0.0001591929688966366,
+          "minimum_knot_gap": 0.4135550212779222,
+          "valid": false
+        }
+      },
+      "max_position_difference": 2.454211125691004,
+      "speedup": null
+    },
+    {
+      "seed": 3,
+      "instance_id": "66eff4caa0a7473bcce5",
+      "input_sha256": "fd52ab0a820bc8ea2eb6a8477358513b15a7e2c28156f8c06bfc7e4ed1a629fb",
+      "config": {
+        "name": "sweep_n",
+        "description": "Base configuration for N-robot sweep experiments",
+        "random_seed": 3,
+        "problem": {
+          "n_robots": 20,
+          "time_horizon": 31.622776601683796,
+          "timestep": 0.15811388300841897,
+          "min_distance": 0.5,
+          "robot_radius": 0.25,
+          "dimension": 2,
+          "environment": {
+            "pos_x_min": null,
+            "pos_x_max": null,
+            "pos_y_min": null,
+            "pos_y_max": null,
+            "position_lower": null,
+            "position_upper": null
+          },
+          "dynamics": {
+            "vel_min": null,
+            "vel_max": null,
+            "acc_min": null,
+            "acc_max": null,
+            "jerk_min": null,
+            "jerk_max": null
+          },
+          "scenario": {
+            "cluster_radius": 5.0,
+            "cluster_margin": 1.5,
+            "spacing": 0.8
+          }
+        },
+        "solver": {
+          "scp_detection_tol": 0.001,
+          "scp_validation_tol": 1e-05,
+          "sci_detection_tol": 0.001,
+          "scp_convergence_rel": 0.01,
+          "scp_convergence_abs": 0.01,
+          "osqp_eps_abs": 0.0001,
+          "osqp_eps_rel": 0.0,
+          "fsolve_xtol": 0.0,
+          "scp_max_iterations": 20,
+          "osqp_max_iter": 10000,
+          "osqp_polish": true,
+          "osqp_warm_start": true,
+          "osqp_verbose": false,
+          "sci_max_contacts": 30,
+          "sci_max_contacts_per_pair": 10,
+          "sci_min_contact_gap": 0.0,
+          "sci_residual_tol": 1e-07,
+          "sci_geometry_tol": 1e-08,
+          "sci_mass_tol": 1e-09,
+          "sci_root_max_iterations": 100,
+          "apply_velocity_bounds": false,
+          "timeout": 300.0,
+          "prio_scp_normalize_obstacles": true,
+          "use_analytical_jacobian": true,
+          "root_method": "hybr",
+          "vectorize_residuals": true,
+          "vectorize_postprocess": true
+        },
+        "visualization": {
+          "show_plots": false,
+          "save_plots": false,
+          "output_dir": "outputs",
+          "dpi": 150,
+          "figsize": [
+            10,
+            10
+          ]
+        }
+      },
+      "historical_runtime": 0.4753944999538362,
+      "legacy": {
+        "times_s": [
+          0.6927002081647515,
+          0.6749832080677152,
+          0.6710903749335557,
+          0.6819570830557495,
+          0.6738077909685671
+        ],
+        "median_s": 0.6749832080677152,
+        "success": true,
+        "reason": "converged",
+        "contacts": 6,
+        "continuous_minimum": 0.499999999999999,
+        "cost": 1.8041764278317318,
+        "matching_seconds": 0.26223258301615715,
+        "checks": null
+      },
+      "vector": {
+        "times_s": [
+          0.33845708309672773,
+          0.33378129196353257,
+          0.3432929578702897,
+          0.3415753748267889,
+          0.3363042080309242
+        ],
+        "median_s": 0.33845708309672773,
+        "success": true,
+        "reason": "converged",
+        "contacts": 6,
+        "continuous_minimum": 0.49999999999999933,
+        "cost": 1.8041764278317323,
+        "matching_seconds": 0.024620708776637912,
+        "checks": {
+          "residual": 3.322742629001743e-11,
+          "acceleration_jump": 1.1013143088461907e-11,
+          "jerk_balance": 3.322742629001743e-11,
+          "normalization": 4.969358258222201e-13,
+          "tangency": 5.329070518200751e-13,
+          "endpoint_error": 2.6645352591003757e-15,
+          "minimum_mass": 6.748258043136743e-05,
+          "minimum_knot_gap": 0.6469838145109854,
+          "valid": true
+        }
+      },
+      "max_position_difference": 1.5195665024721753e-09,
+      "speedup": 1.9942948213461131
+    },
+    {
+      "seed": 4,
+      "instance_id": "5e2aacc37bf4d9770295",
+      "input_sha256": "be923b15ecdc668d377fafa654f3c18025637c6140f98fa27310138a00d37eef",
+      "config": {
+        "name": "sweep_n",
+        "description": "Base configuration for N-robot sweep experiments",
+        "random_seed": 4,
+        "problem": {
+          "n_robots": 20,
+          "time_horizon": 31.622776601683796,
+          "timestep": 0.15811388300841897,
+          "min_distance": 0.5,
+          "robot_radius": 0.25,
+          "dimension": 2,
+          "environment": {
+            "pos_x_min": null,
+            "pos_x_max": null,
+            "pos_y_min": null,
+            "pos_y_max": null,
+            "position_lower": null,
+            "position_upper": null
+          },
+          "dynamics": {
+            "vel_min": null,
+            "vel_max": null,
+            "acc_min": null,
+            "acc_max": null,
+            "jerk_min": null,
+            "jerk_max": null
+          },
+          "scenario": {
+            "cluster_radius": 5.0,
+            "cluster_margin": 1.5,
+            "spacing": 0.8
+          }
+        },
+        "solver": {
+          "scp_detection_tol": 0.001,
+          "scp_validation_tol": 1e-05,
+          "sci_detection_tol": 0.001,
+          "scp_convergence_rel": 0.01,
+          "scp_convergence_abs": 0.01,
+          "osqp_eps_abs": 0.0001,
+          "osqp_eps_rel": 0.0,
+          "fsolve_xtol": 0.0,
+          "scp_max_iterations": 20,
+          "osqp_max_iter": 10000,
+          "osqp_polish": true,
+          "osqp_warm_start": true,
+          "osqp_verbose": false,
+          "sci_max_contacts": 30,
+          "sci_max_contacts_per_pair": 10,
+          "sci_min_contact_gap": 0.0,
+          "sci_residual_tol": 1e-07,
+          "sci_geometry_tol": 1e-08,
+          "sci_mass_tol": 1e-09,
+          "sci_root_max_iterations": 100,
+          "apply_velocity_bounds": false,
+          "timeout": 300.0,
+          "prio_scp_normalize_obstacles": true,
+          "use_analytical_jacobian": true,
+          "root_method": "hybr",
+          "vectorize_residuals": true,
+          "vectorize_postprocess": true
+        },
+        "visualization": {
+          "show_plots": false,
+          "save_plots": false,
+          "output_dir": "outputs",
+          "dpi": 150,
+          "figsize": [
+            10,
+            10
+          ]
+        }
+      },
+      "historical_runtime": 0.5489785838872194,
+      "legacy": {
+        "times_s": [
+          0.7786407079547644,
+          0.7527329169679433,
+          0.7495802501216531,
+          0.7707299999892712,
+          0.8052018750458956
+        ],
+        "median_s": 0.7707299999892712,
+        "success": true,
+        "reason": "converged",
+        "contacts": 6,
+        "continuous_minimum": 0.4999999999999992,
+        "cost": 1.4840922292239902,
+        "matching_seconds": 0.35356891597621143,
+        "checks": null
+      },
+      "vector": {
+        "times_s": [
+          0.3446872078347951,
+          0.3419228750281036,
+          0.35455450019799173,
+          0.3493635419290513,
+          0.3700767499394715
+        ],
+        "median_s": 0.3493635419290513,
+        "success": true,
+        "reason": "converged",
+        "contacts": 6,
+        "continuous_minimum": 0.49999999999999895,
+        "cost": 1.4840922292239909,
+        "matching_seconds": 0.0381899569183588,
+        "checks": {
+          "residual": 3.165408907213063e-12,
+          "acceleration_jump": 2.3475665855698935e-13,
+          "jerk_balance": 3.165408907213063e-12,
+          "normalization": 1.1102230246251565e-16,
+          "tangency": 1.1102230246251565e-16,
+          "endpoint_error": 4.440892098500626e-15,
+          "minimum_mass": 9.148503191489867e-05,
+          "minimum_knot_gap": 0.2453312680586599,
+          "valid": true
+        }
+      },
+      "max_position_difference": 1.0377279595969846e-10,
+      "speedup": 2.206097395662971
+    }
+  ],
+  "source_sha256": {
+    "code/contact-solver/src/contact_solver/solvers/vector_matching.py": "326ffe29e94e4f5e080d4224fd7ab4fb4d38a14789ab9345d5985232c3b9d358",
+    "code/contact-solver/src/contact_solver/solvers/zoh_trajectory.py": "d2ea491f88da404009344e36a9b1f6e6b21e1557dc0b2ca4bad4398cf5cd60b9",
+    "code/contact-solver/src/contact_solver/solvers/velocity_arcs.py": "ac1b0c58212d6cba714208cfb51f6c4316721b696ad9e89d19ac48dcedc4fdd5",
+    "code/contact-solver/src/contact_solver/solvers/prioritized_scp.py": "df84f6cbef5dc2783ea777beddf3253bc6c1599ce65c7f882c1b6e5140df84d6",
+    "code/contact-solver/src/contact_solver/solvers/vector_contact_solver.py": "8f3486ee729040d4d40c0fef365c579c9a5edb30450afe8470618a69a2eb70cf",
+    "code/contact-solver/src/contact_solver/solvers/prioritized_sci.py": "df2b19034f9ac5b5680282280accf9c10ab0536b09348f7df10ed07013bb9a31",
+    "code/contact-solver/src/contact_solver/solvers/__init__.py": "c0e0a1883bcb95f8c609d5583c839b7ebb9b98ab4308e382ecbd14db6c43a573",
+    "code/contact-solver/src/contact_solver/solvers/lifted_scp.py": "3fa9b97429769702f52b012f079aae69061dcff42a33122e1cfc14c7a3749644",
+    "code/contact-solver/src/contact_solver/solvers/contact_solver.py": "1d08932f0f461323bc17de1e81c3ba1f193ac1e3076d86db7fc092a96d917ad8",
+    "code/contact-solver/src/contact_solver/solvers/prioritized_utils.py": "583a5abb8ba1945e8f5e11665c69efea0d98840b22ad4a4c42288e5a331f6d1e",
+    "code/contact-solver/src/contact_solver/solvers/cubic_utils.py": "87a3f47e9e671d26f24d8f7d68d2289e73e73d256aad81b163c8aae2e5caef17",
+    "code/contact-solver/src/contact_solver/solvers/osqp_utils.py": "56afd1710d89390b566aa8efe7c2671b68dde307438a6c4195e0f8abbe6080f6",
+    "code/contact-solver/src/contact_solver/solvers/scp.py": "b02e7a15aaa8edc4894019f340ac8a20e2ee06fe6312176ff4791bbf3d0ea7c8",
+    "code/contact-solver/src/contact_solver/solvers/base.py": "f6ef271b8ea5de2cdc9af79a4863f758db5fa13201658170b8aeb015b62e5bba"
+  }
+}

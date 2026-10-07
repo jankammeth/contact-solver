@@ -12,9 +12,14 @@ from pathlib import Path
 
 import numpy as np
 
-from contact_solver import Config, LiftedSCP, VectorContactSolver
-from contact_solver.cli.vector_sci import acceleration_cost, smoke_endpoints
+from contact_solver import Config, LiftedSCP, ContactSolver
+from contact_solver.cli.vector_sci import smoke_endpoints
 from contact_solver.config import ProblemConfig, SolverConfig
+from contact_solver.evaluation import (
+    continuous_acceleration_cost,
+    discrete_acceleration_cost,
+    sample_scp_grid,
+)
 
 
 def compare_instance(config, states):
@@ -23,7 +28,7 @@ def compare_instance(config, states):
     if config.solver.scp_detection_tol != config.solver.sci_detection_tol:
         raise ValueError("Use equal scp_detection_tol and sci_detection_tol for paired comparisons")
     records = {}
-    for name, cls in (("scp", LiftedSCP), ("sci", VectorContactSolver)):
+    for name, cls in (("scp", LiftedSCP), ("sci", ContactSolver)):
         solver = cls(config)
         solver.set_initial_states(states["initial_positions"], states.get("initial_velocities"))
         solver.set_final_states(states["final_positions"], states.get("final_velocities"))
@@ -58,11 +63,11 @@ def compare_instance(config, states):
         )
         record = {key: metrics[key] for key in kept if key in metrics}
         record["call_wall_time"] = call_time
-        record["acceleration_cost"] = (
-            metrics.get("acceleration_cost")
-            if name == "scp"
-            else acceleration_cost(solver, solver.trajectory.times)
-        )
+        evaluated = result["trajectories"] if name == "scp" else sample_scp_grid(solver, config.problem.n_timesteps)
+        record["acceleration_cost"] = discrete_acceleration_cost(evaluated, solver.h)
+        record["cost_grid"] = dict(rule="right endpoints: h, 2h, ..., K*h", K=config.problem.n_timesteps, weight=solver.h)
+        if name == "sci":
+            record["continuous_acceleration_cost"] = continuous_acceleration_cost(solver)
         if name == "scp":
             solves = [
                 metrics["osqp_metrics"]["initial_solve"],
@@ -108,7 +113,6 @@ def smoke_report():
                     osqp_eps_rel=1e-7,
                     scp_max_iterations=50,
                     osqp_max_iter=20000,
-                    apply_velocity_bounds=False,
                     timeout=30,
                 ),
             )
@@ -128,7 +132,7 @@ def smoke_report():
     paths = (
         "solvers/lifted_scp.py",
         "solvers/zoh_trajectory.py",
-        "solvers/vector_contact_solver.py",
+        "solvers/contact_solver.py",
         "solvers/vector_matching.py",
         "solvers/cubic_utils.py",
     )

@@ -39,9 +39,7 @@ from contact_solver.config import Config
 from contact_solver.solvers.prioritized_sci import PrioritizedSCI
 from contact_solver.solvers.prioritized_utils import (
     PiecewiseCubicTrajectory,
-    conflict_severity_order,
 )
-
 
 # ──────────────────────────────────────────────────────────────────────────
 #  Rank-by-rank driver — replicates PrioritizedSCI.generate_trajectories()
@@ -58,40 +56,11 @@ def run_prio_sci_per_rank(
     k-th rank has been inserted (so snapshots[0] has one robot, snapshots[-1]
     has all N). rank_info[k] is (robot_id, converged_ok, reason_string).
     """
-    p0 = solver.initial_positions.reshape(solver.N, 2)
-    pf = solver.final_positions.reshape(solver.N, 2)
-    v0 = (
-        solver.initial_velocities.reshape(solver.N, 2)
-        if solver.initial_velocities is not None
-        else np.zeros((solver.N, 2))
-    )
-    vf = (
-        solver.final_velocities.reshape(solver.N, 2)
-        if solver.final_velocities is not None
-        else np.zeros((solver.N, 2))
-    )
-
-    order = conflict_severity_order(p0, v0, pf, vf, solver.T, solver.R)
-
-    trajectories: dict[int, PiecewiseCubicTrajectory] = {}
-    snapshots: list[dict[int, PiecewiseCubicTrajectory]] = []
-    rank_info: list[tuple[int, bool, str]] = []
-
-    for robot_i in order:
-        obstacles = dict(trajectories)  # snapshot of priors at this rank
-        traj_i, n_contacts, _max_per_pair, ok = solver._solve_single_robot(
-            p0[robot_i], v0[robot_i], pf[robot_i], vf[robot_i],
-            obstacles, verbose=False,
-        )
-        trajectories[robot_i] = traj_i
-
-        # Reason matches the solver's own taxonomy: either it converged (all
-        # detected violations resolved within max_contacts) or it hit
-        # max_iterations on the contact-insertion loop.
-        reason = "converged" if ok else "max_iterations"
-        rank_info.append((robot_i, ok, reason))
-        snapshots.append(dict(trajectories))  # copy: solver may mutate later
-
+    result = solver.generate_trajectories()
+    order = result["metrics"]["priority_order"]
+    snapshots = [{i: solver._trajectories[i] for i in order[:k+1]} for k in range(solver.N)]
+    rank_info = [(i, check["valid"], check["reason"])
+                 for i, check in zip(order, result["metrics"]["rank_checks"], strict=True)]
     return order, snapshots, rank_info
 
 

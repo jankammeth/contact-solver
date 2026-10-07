@@ -42,8 +42,6 @@ def _config(n_robots: int = 3, K: int = 50, T: float = 5.0) -> Config:
             osqp_eps_abs=1e-4,
             osqp_eps_rel=0.0,
             scp_max_iterations=20,
-            sci_max_contacts=20,
-            sci_max_contacts_per_pair=10,
         ),
         visualization=VisualizationConfig(show_plots=False),
     )

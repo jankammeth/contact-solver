@@ -23,6 +23,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from contact_solver.evaluation import continuous_acceleration_cost, sample_scp_grid
+from contact_solver.solvers.prioritized_utils import conflict_severity_order
+
 # Add src to path for development
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -32,7 +35,6 @@ from contact_solver import (
     generate_random_positions,
     load_config,
 )
-from contact_solver.config import Config
 from contact_solver.cli._sweep_utils import (
     build_scaled_config,
     compare_braid_words,
@@ -40,7 +42,7 @@ from contact_solver.cli._sweep_utils import (
     compute_metrics,
     run_solver_with_timeout,
 )
-
+from contact_solver.config import Config
 
 APPLE_STUDIO_WIDTH_PX = 5120
 APPLE_STUDIO_HEIGHT_PX = 2880
@@ -618,9 +620,15 @@ def run_single_experiment(config: Config, timeout: float = 300.0) -> dict:
     scp_traj_K = None
     sci_traj_K = None
 
+    order_started = time.perf_counter()
+    zeros = np.zeros_like(initial)
+    order = conflict_severity_order(initial, zeros, final, zeros, config.problem.time_horizon, config.problem.min_distance)
+    results["priority_order"] = json.dumps(order)
+    results["priority_preprocessing_time"] = time.perf_counter() - order_started
+
     # ── PrioritizedSCP ───────────────────────────────────────
     try:
-        scp_solver = PrioritizedSCP(config, verbose=False)
+        scp_solver = PrioritizedSCP(config, verbose=False, priority_order=order)
         scp_solver.set_initial_states(initial)
         scp_solver.set_final_states(final)
         scp_result, scp_timeout = run_solver_with_timeout(scp_solver, timeout)
@@ -663,7 +671,7 @@ def run_single_experiment(config: Config, timeout: float = 300.0) -> dict:
 
     # ── PrioritizedSCI ───────────────────────────────────────
     try:
-        sci_solver = PrioritizedSCI(config, verbose=False)
+        sci_solver = PrioritizedSCI(config, verbose=False, priority_order=order)
         sci_solver.set_initial_states(initial)
         sci_solver.set_final_states(final)
         sci_result, sci_timeout = run_solver_with_timeout(sci_solver, timeout)
@@ -676,32 +684,15 @@ def run_single_experiment(config: Config, timeout: float = 300.0) -> dict:
             })
         else:
             success = sci_result["metrics"]["converged"]
-            traj_dense = sci_result["trajectories"]
 
-            # Resample SCI's dense trajectory at SCP's K-point grid for fair
-            # cost / similarity comparison (cf. sweep_n's contact sampling)
-            n_dense = len(traj_dense["positions"][0])
-            grid_idx = np.linspace(0, n_dense - 1, K).astype(int)
-            sci_traj_K = {
-                "positions": [p[grid_idx] for p in traj_dense["positions"]],
-                "velocities": [v[grid_idx] for v in traj_dense["velocities"]],
-                "accelerations": [a[grid_idx] for a in traj_dense["accelerations"]],
-            }
-            sci_cost_metrics = compute_metrics(sci_traj_K, config)
-
-            # Continuous cost: trapezoidal integral over the dense grid
-            T = config.problem.time_horizon
-            dt_cont = T / (n_dense - 1)
-            cost_continuous = sum(
-                np.trapezoid(np.sum(a ** 2, axis=1), dx=dt_cont)
-                for a in traj_dense["accelerations"]
-            )
+            # Evaluate the actual polynomial at precisely h, 2h, ..., Kh.
+            grid_trajectories = sample_scp_grid(sci_solver, K, h)
+            sci_traj_K = grid_trajectories if success else None
+            sci_cost_metrics = compute_metrics(grid_trajectories, config)
+            cost_continuous = continuous_acceleration_cost(sci_solver)
 
             per_rank_t = sci_result["metrics"]["timing"].get("per_rank_time", [])
 
-            # NB: PrioritizedSCI has no max_contacts_single_pair metric --
-            # per-pair counts are not meaningful in prioritized planning
-            # (each rank is one robot vs many obstacles).
             results.update({
                 "prio_sci_success": success,
                 "prio_sci_reason": sci_result["metrics"]["convergence_reason"],
@@ -713,7 +704,8 @@ def run_single_experiment(config: Config, timeout: float = 300.0) -> dict:
                 "prio_sci_time_per_rank": json.dumps([float(t) for t in per_rank_t]),
                 "prio_sci_cost": sci_cost_metrics["acceleration_cost"],
                 "prio_sci_cost_continuous": cost_continuous,
-                "prio_sci_min_dist": sci_cost_metrics["min_distance"],
+                "prio_sci_min_dist": sci_result["metrics"]["min_distance"],
+                "prio_sci_grid_min_dist": sci_cost_metrics["min_distance"],
             })
     except Exception as e:
         results.update({
@@ -793,7 +785,7 @@ def main():
         print(f"\nERROR: could not load config '{args.config}'.")
         print(f"  {e}")
         print(f"  Working directory: {Path.cwd()}")
-        print(f"  Pass --config <name> to use a different YAML from configs/.")
+        print("  Pass --config <name> to use a different YAML from configs/.")
         sys.exit(2)
 
     # Confirm at the top of the run what is actually loaded, so any mismatch

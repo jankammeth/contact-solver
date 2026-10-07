@@ -34,7 +34,7 @@ def small_config():
             ),
             scenario=ScenarioConfig(),
         ),
-        solver=SolverConfig(scp_max_iterations=20, max_contacts=10),
+        solver=SolverConfig(scp_max_iterations=20),
         visualization=VisualizationConfig(show_plots=False),
     )
 
@@ -59,7 +59,7 @@ def medium_config():
             ),
             scenario=ScenarioConfig(cluster_radius=4.0),
         ),
-        solver=SolverConfig(scp_max_iterations=20, max_contacts=15),
+        solver=SolverConfig(scp_max_iterations=20),
         visualization=VisualizationConfig(show_plots=False),
     )
 

@@ -38,8 +38,6 @@ def get_test_config(n_robots=3):
         ),
         solver=SolverConfig(
             scp_max_iterations=20,
-            max_contacts=10,
-            max_contacts_per_pair=5,
         ),
         visualization=VisualizationConfig(show_plots=False),
     )

@@ -8,7 +8,7 @@ from ..config import Config
 
 
 class Solver(ABC):
-    # Opt in to the general-dimensional base endpoint setters. VectorContactSolver
+    # Opt in to the general-dimensional base endpoint setters. ContactSolver
     # has its own setters. Legacy and prioritized solvers retain planar guards.
     supports_nd_states = False
 

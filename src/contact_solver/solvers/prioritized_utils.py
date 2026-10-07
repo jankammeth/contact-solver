@@ -76,7 +76,7 @@ class PiecewiseCubicTrajectory:
 
     def _find_segment(self, t):
         for coeffs, t_s, t_e in self.segments:
-            if t_s <= t <= t_e + 1e-10:
+            if t_s <= t <= t_e:
                 return coeffs, t_s
         coeffs, t_s, _ = self.segments[-1]
         return coeffs, t_s
@@ -95,10 +95,7 @@ class PiecewiseCubicTrajectory:
 
     def sample(self, n_points: int = 1000):
         times = np.linspace(0.0, self.T, n_points)
-        positions = np.array([self.eval_pos(t) for t in times])
-        velocities = np.array([self.eval_vel(t) for t in times])
-        accelerations = np.array([self.eval_acc(t) for t in times])
-        return times, positions, velocities, accelerations
+        return times, *self.sample_at(times)
 
     def sample_at(self, times: np.ndarray):
         positions = np.array([self.eval_pos(t) for t in times])

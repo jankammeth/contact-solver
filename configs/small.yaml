@@ -41,7 +41,6 @@ solver:
   # ── Solver tolerances ──────────────────
   osqp_eps_abs: 1e-3
   osqp_eps_rel: 1e-3
-  fsolve_xtol: 0.0
 
   # ── Algorithm parameters ───────────────────────
   scp_max_iterations: 50
@@ -49,10 +48,7 @@ solver:
   osqp_polish: true
   osqp_warm_start: true
   osqp_verbose: false
-  sci_max_contacts: 40
-  sci_max_contacts_per_pair: 10
   sci_min_contact_gap: 1e-6
-  apply_velocity_bounds: false
   use_analytical_jacobian: true
   timeout: 300.0
 

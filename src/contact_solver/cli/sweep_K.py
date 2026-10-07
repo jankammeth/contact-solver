@@ -27,6 +27,7 @@ from collections import Counter
 from pathlib import Path
 
 import numpy as np
+from contact_solver.evaluation import continuous_acceleration_cost
 import pandas as pd
 
 # Add src to path for development
@@ -111,12 +112,7 @@ def run_seed_K_sweep(
     sci_max_per_pair = sci_result["metrics"]["max_contacts_single_pair"]
 
     # Continuous-time SCI cost (K-independent)
-    T = config_sci.problem.time_horizon
-    sci_acc_cont = sci_result["trajectories"]["accelerations"]
-    dt_cont = T / (len(sci_acc_cont[0]) - 1)
-    sci_cost_continuous = sum(
-        np.trapezoid(np.sum(a**2, axis=1), dx=dt_cont) for a in sci_acc_cont
-    )
+    sci_cost_continuous = continuous_acceleration_cost(sci_solver)
 
     # ── SCP across K, SCI resampled per K ───────────────────────
     rows = []

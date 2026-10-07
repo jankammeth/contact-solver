@@ -1,7 +1,7 @@
 # General-dimensional joint LiftedSCP
 
 `LiftedSCP` supports `problem.dimension = d >= 2`, using the existing sparse QP
-and OSQP integration. `VectorContactSolver` can solve the same unconstrained
+and OSQP integration. `ContactSolver` can solve the same unconstrained
 endpoint problems. Prioritized planners and the old `ContactSolver` retain their
 planar algorithms; their base endpoint setters reject dimensions other than two.
 
@@ -21,8 +21,7 @@ NaNs, inconsistent lengths and reversed bounds are rejected.
 
 `problem.dynamics.vel_min/max`, `acc_min/max`, and `jerk_min/max` remain scalar
 componentwise bounds, applied to every coordinate. They are box bounds, not norm
-bounds. As in the old joint QP, configured velocity bounds are included directly;
-`apply_velocity_bounds` controls SCI postprocessing, not this QP. The jerk bounds
+bounds. Configured velocity bounds are included directly in the QP. The jerk bounds
 constrain the discrete proxy `(a[k]-a[k-1])/h` for `k >= 1`. Held acceleration can
 jump, so these do not assert bounded classical continuous jerk.
 
@@ -166,7 +165,7 @@ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
 ```
 
 The interface requires an explicit common horizon and equal SCI/SCP separation
-tolerances. Use unconstrained configurations for comparisons: VectorContactSolver
+tolerances. Use unconstrained configurations for comparisons: ContactSolver
 does not support bounds or obstacles. It records endpoints, actual costs, minima,
 statuses, system sizes, QP summaries and timing fields. The 16-case smoke report
 also records package versions, thread settings and hashes of solver/checker sources.

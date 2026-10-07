@@ -85,7 +85,7 @@ class ProblemConfig:
     timestep: float = MISSING
     min_distance: float = MISSING
     robot_radius: float = 0.4
-    # LiftedSCP and VectorContactSolver support any dimension >= 2.
+    # LiftedSCP and ContactSolver support any dimension >= 2.
     dimension: int = 2
 
     environment: EnvironmentConfig = field(default_factory=EnvironmentConfig)
@@ -120,8 +120,6 @@ class SolverConfig:
     # OSQP: QP subproblem precision inside SCP
     osqp_eps_abs: float = 0.0
     osqp_eps_rel: float = 0.0
-    # fsolve: algebraic system precision inside SCI (0 = scipy default ~1.49e-8)
-    fsolve_xtol: float = 0.0
 
     # ── Algorithm limits ─────────────────────────────────────
     scp_max_iterations: int = 15
@@ -129,16 +127,14 @@ class SolverConfig:
     osqp_polish: bool = True
     osqp_warm_start: bool = True
     osqp_verbose: bool = False
-    sci_max_contacts: int = 20
-    sci_max_contacts_per_pair: int = 10
     sci_min_contact_gap: float = 0.0
     # Explicit-vector joint solver (absolute, unscaled equation tolerances).
     sci_residual_tol: float = 1e-7
-    sci_geometry_tol: float = 1e-8
     sci_mass_tol: float = 1e-9
     sci_root_max_iterations: int = 100
-    apply_velocity_bounds: bool = True
-    timeout: float = 0.0
+    # Condensed recovery after failed matching, with the same acceptance checks.
+    sci_reaction_recovery: bool = True
+    timeout: float = 300.0
 
     # ── PrioritizedSCP-specific options ──────────────────────
     # If True (default, original behavior), the linearized obstacle-constraint
@@ -163,14 +159,8 @@ class SolverConfig:
     prio_scp_normalize_obstacles: bool = True
 
     # ── Performance optimizations ────────────────────────────
-    # Analytical Jacobian for fsolve / scipy.optimize.root
-    use_analytical_jacobian: bool = False
-    # Root-finding method: "fsolve", "hybr", "lm"
-    root_method: str = "fsolve"
-    # Vectorized residual / segment building (numpy arrays instead of dicts)
-    vectorize_residuals: bool = False
-    # Vectorized post-processing (min_dist computation)
-    vectorize_postprocess: bool = False
+    # Analytical matching Jacobian; False selects the finite-difference ablation.
+    use_analytical_jacobian: bool = True
 
 
 @dataclass
@@ -200,6 +190,20 @@ class Config:
     def from_yaml(cls, path: str | Path) -> "Config":
         schema = OmegaConf.structured(cls)
         yaml_config = OmegaConf.load(path)
+        # Migrate only known obsolete fields in saved YAML/JSON experiments.
+        # They are not solver options and must not appear in new configurations.
+        # Unknown keys still fail the structured merge below.
+        solver_config = yaml_config.get("solver", {})
+        for key in (
+            "fsolve_xtol", "root_method", "vectorize_residuals",
+            "vectorize_postprocess", "apply_velocity_bounds", "sci_geometry_tol",
+            "sci_max_contacts", "sci_max_contacts_per_pair",
+        ):
+            if key in solver_config:
+                del solver_config[key]
+        # Saved configurations used zero to disable the solve deadline.
+        if solver_config.get("timeout") == 0:
+            del solver_config["timeout"]
         merged = OmegaConf.merge(schema, yaml_config)
         return OmegaConf.to_object(merged)
 

@@ -15,7 +15,6 @@ from contact_solver import (
     LiftedSCP,
     PrioritizedSCI,
     PrioritizedSCP,
-    VectorContactSolver,
 )
 from contact_solver.config import DynamicsConfig, EnvironmentConfig, ProblemConfig, SolverConfig
 from contact_solver.solvers.zoh_trajectory import ZOHTrajectory
@@ -30,7 +29,6 @@ def config(d=2, n=2, **options):
         osqp_eps_rel=1e-7,
         osqp_max_iter=20000,
         scp_max_iterations=50,
-        apply_velocity_bounds=False,
     )
     defaults.update(options)
     return Config(
@@ -374,7 +372,7 @@ def test_config_input_guards_and_time_grid(tmp_path):
         solver.set_initial_states(np.full((2, 3), np.nan))
     with pytest.raises(ValueError, match="Obstacles"):
         LiftedSCP(cfg, obstacle_positions=np.zeros((2, 2)))
-    for cls in (ContactSolver, PrioritizedSCP, PrioritizedSCI):
+    for cls in (PrioritizedSCP, PrioritizedSCI):
         legacy = cls(config(3))
         with pytest.raises(ValueError, match="only dimension=2"):
             legacy.set_initial_states(np.zeros((2, 3)))
@@ -401,15 +399,15 @@ def test_joint_cost_and_separation_comparison():
     start, goal = crossing(3)
     cfg = config(3)
     lifted, result = solve(start, goal, cfg)
-    vector = VectorContactSolver(cfg)
+    vector = ContactSolver(cfg)
     vector.set_initial_states(start)
     vector.set_final_states(goal)
     sci = vector.generate_trajectories()
-    from contact_solver.cli.vector_sci import acceleration_cost
+    from contact_solver.evaluation import continuous_acceleration_cost
 
     assert result["metrics"]["converged"] and sci["metrics"]["converged"]
     assert result["metrics"]["acceleration_cost"] == pytest.approx(
-        acceleration_cost(vector, vector.trajectory.times), rel=1e-3
+        continuous_acceleration_cost(vector), rel=1e-3
     )
     assert result["metrics"]["system_size"] == 3 * 3 * 2 * 60
     assert sci["metrics"]["system_size"] == 8

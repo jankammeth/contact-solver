@@ -6,7 +6,6 @@ problem:
   timestep: 0.1
   min_distance: 1.0
 solver:
-  apply_velocity_bounds: false
   scp_detection_tol: 1.0e-3
   sci_detection_tol: 1.0e-3
   scp_validation_tol: 1.0e-5

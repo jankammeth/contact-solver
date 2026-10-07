@@ -27,18 +27,17 @@ import time
 from dataclasses import dataclass
 
 import numpy as np
-from scipy.optimize import fsolve
 
 from ..config import Config
 from .base import Solver
+from .collision_search import COLLISION_BACKEND, minima
 from .cubic_utils import (
     cubic_coefficients,
-    eval_cubic,
     eval_cubic_acc,
     eval_cubic_jerk,
-    eval_cubic_vel,
-    find_distance_minima,
 )
+from .matching_numerics import damped_newton, insertion_time
+from .prioritized_recovery import recover_reactions, trajectory_key
 from .prioritized_utils import PiecewiseCubicTrajectory, conflict_severity_order
 
 
@@ -80,10 +79,37 @@ class PrioritizedSCI(Solver):
         if priority_order is not None and sorted(priority_order) != list(range(self.N)):
             raise ValueError("priority_order must be a permutation of robot indices")
         self.priority_order = list(priority_order) if priority_order is not None else None
-        self.max_contacts_per_robot = config.solver.sci_max_contacts
-        self.max_contacts_per_obstacle = config.solver.sci_max_contacts_per_pair
         self.detection_tol = config.solver.sci_detection_tol
-        self.fsolve_xtol = config.solver.fsolve_xtol
+        self.options = config.solver
+        if (
+            self.options.sci_root_max_iterations < 0
+            or self.options.sci_residual_tol <= 0
+            or min(
+                self.options.sci_mass_tol,
+                self.options.sci_detection_tol,
+                self.options.sci_min_contact_gap,
+            )
+            < 0
+        ):
+            raise ValueError("Invalid SCI tolerances or limits")
+        if not np.isfinite(self.options.timeout) or self.options.timeout <= 0:
+            raise ValueError("Solve timeout must be positive and finite")
+        if (
+            np.any(np.isfinite(self.pos_min))
+            or np.any(np.isfinite(self.pos_max))
+            or any(
+                value is not None
+                for value in (
+                    self.vel_min,
+                    self.vel_max,
+                    self.acc_min,
+                    self.acc_max,
+                    self.jerk_min,
+                    self.jerk_max,
+                )
+            )
+        ):
+            raise ValueError("PrioritizedSCI supports unconstrained dynamics and workspace only")
 
     # ------------------------------------------------------------------
     #  Public entry point
@@ -91,7 +117,7 @@ class PrioritizedSCI(Solver):
 
     def generate_trajectories(self, verbose: bool | None = None):
         verbose = verbose if verbose is not None else self.verbose
-        t_wall_start = time.perf_counter()
+        t_call_start = time.perf_counter()
         self.matching_seconds = 0.0
         self.matching_solves = 0
         self.matching_nfev = 0
@@ -109,8 +135,21 @@ class PrioritizedSCI(Solver):
             else np.zeros((self.N, 2))
         )
 
-        order = (list(self.priority_order) if self.priority_order is not None
-                 else conflict_severity_order(p0, v0, pf, vf, self.T, self.R))
+        order = (
+            list(self.priority_order)
+            if self.priority_order is not None
+            else conflict_severity_order(p0, v0, pf, vf, self.T, self.R)
+        )
+
+        preprocessing_time = time.perf_counter() - t_call_start
+        t_wall_start = time.perf_counter()
+        self.deadline = t_wall_start + self.options.timeout
+        self.rank_checks = []
+        self.roots = []
+        self.removed_contacts = []
+        self.insertion_offsets = []
+        self.recovery_attempts = []
+        self._recovered_trajectory = None
 
         if verbose:
             print(f"PrioritizedSCI: N={self.N}, T={self.T:.3f}, R={self.R:.3f}m")
@@ -149,15 +188,19 @@ class PrioritizedSCI(Solver):
         t_solve = time.perf_counter() - t_wall_start
         t_post_start = time.perf_counter()
         self._trajectories = trajectories
-        times, positions, velocities, accelerations = self._sample_all(trajectories)
-        min_dist = self._compute_min_dist(positions)
-        converged = (min_dist >= self.R - self.detection_tol) and all(rank_converged)
-        reason = "converged" if converged else "max_contacts_or_violation"
+        times, positions, velocities, accelerations = self.sample()
+        min_dist = min((r["min_distance"] for r in self.rank_checks), default=np.inf)
+        converged = all(rank_converged)
+        reason = (
+            "converged"
+            if converged
+            else next(r["reason"] for r in self.rank_checks if not r["valid"])
+        )
 
         t_post = time.perf_counter() - t_post_start
-        t_wall_total = time.perf_counter() - t_wall_start
 
         return {
+            "times": times,
             "trajectories": {
                 "positions": positions,
                 "velocities": velocities,
@@ -165,20 +208,29 @@ class PrioritizedSCI(Solver):
             },
             "metrics": {
                 "timing": {
-                    "total_time": t_wall_total,
-                    "wall_time": t_wall_total,
+                    "total_time": t_solve,
+                    "preprocessing_time": preprocessing_time,
+                    "wall_time": time.perf_counter() - t_call_start,
                     "solve_time": t_solve,
                     "postprocess_time": t_post,
                     "per_rank_time": time_per_rank,
                 },
                 "converged": converged,
+                "collision_backend": COLLISION_BACKEND,
+                "rank_checks": self.rank_checks,
+                "roots": self.roots,
+                "recovery_attempts": self.recovery_attempts,
+                "removed_contacts": self.removed_contacts,
+                "insertion_offsets": self.insertion_offsets,
                 "convergence_reason": reason,
                 "matching_seconds": self.matching_seconds,
                 "matching_solves": self.matching_solves,
                 "nfev": self.matching_nfev,
                 "num_contacts": sum(contacts_per_rank),
                 "num_contacts_per_rank": contacts_per_rank,
-                "max_contacts_single_pair": max(max_per_pair_per_rank) if max_per_pair_per_rank else 0,
+                "max_contacts_single_pair": max(max_per_pair_per_rank)
+                if max_per_pair_per_rank
+                else 0,
                 "max_contacts_per_pair_per_rank": max_per_pair_per_rank,
                 "min_distance": min_dist,
                 "min_obstacle_distance": np.inf,
@@ -191,46 +243,91 @@ class PrioritizedSCI(Solver):
     # ------------------------------------------------------------------
 
     def _solve_single_robot(self, p0, v0, pf, vf, obstacles, verbose):
-        contacts: list[_ObstacleContact] = []
-        obs_count: dict[int, int] = {j: 0 for j in obstacles}
-
-        # Initial trajectory (unconstrained cubic)
+        self._recovered_trajectory = None
+        contacts = []
         traj = self._build_trajectory(p0, v0, pf, vf, contacts, obstacles)
-        ok = True
-
-        for iteration in range(self.max_contacts_per_robot + 1):
+        updates = 0
+        reason, residual, minimum_mass = "converged", 0.0, 0.0
+        while True:
             violations = self._find_violations(traj, obstacles, contacts)
-
+            minimum = self._last_minimum
             if not violations:
                 break
-
-            elig = [v for v in violations if obs_count[v[0]] < self.max_contacts_per_obstacle]
-            if not elig:
-                ok = False
+            if time.perf_counter() >= getattr(self, "deadline", np.inf):
+                reason = "timeout"
                 break
-            if iteration == self.max_contacts_per_robot:
-                ok = False
+            obs_idx, t_viol, _ = min(violations, key=lambda v: v[2])
+            if t_viol <= 0 or t_viol >= self.T:
+                reason = "infeasible_endpoint_separation"
                 break
-
-            worst = min(elig, key=lambda v: v[2])
-            obs_idx, t_viol, _ = worst
-
-            new_contact = self._init_contact(obs_idx, t_viol, traj, obstacles)
-            contacts.append(new_contact)
+            try:
+                t_guess = insertion_time(t_viol, [c.t_star for c in contacts], self.T)
+            except ValueError:
+                reason = "coincident_initialization_failed"
+                break
+            if t_guess != t_viol:
+                self.insertion_offsets.append(
+                    dict(obstacle=obs_idx, collision_time=t_viol, initial_time=t_guess)
+                )
+            if (
+                min(abs(t_guess - t) for t in [0.0, self.T] + [c.t_star for c in contacts])
+                < self.options.sci_min_contact_gap
+            ):
+                reason = "minimum_knot_gap"
+                break
+            contacts.append(self._init_contact(obs_idx, t_guess, traj, obstacles))
             contacts.sort(key=lambda c: c.t_star)
-            obs_count[obs_idx] += 1
-
-            contacts = self._solve_contact_system(p0, v0, pf, vf, contacts, obstacles)
-            traj = self._build_trajectory(p0, v0, pf, vf, contacts, obstacles)
-
-        max_per_pair = max(obs_count.values()) if obs_count else 0
-        return traj, len(contacts), max_per_pair, ok
+            updates += 1
+            while True:
+                contacts, info, masses = self._solve_contact_system(
+                    p0, v0, pf, vf, contacts, obstacles
+                )
+                traj = self._build_trajectory(p0, v0, pf, vf, contacts, obstacles)
+                residual = info["residual"]
+                minimum_mass = float(min(masses, default=0.0))
+                if not info["success"]:
+                    reason = info["message"]
+                    break
+                if minimum_mass >= -self.options.sci_mass_tol:
+                    break
+                if time.perf_counter() >= getattr(self, "deadline", np.inf):
+                    reason = "timeout"
+                    break
+                index = int(np.argmin(masses))
+                removed = contacts.pop(index)
+                self.removed_contacts.append(
+                    dict(obstacle=removed.obstacle_idx, time=removed.t_star, mass=minimum_mass)
+                )
+                updates += 1
+            if reason != "converged":
+                # The failed solve changed the path; report its current clearance.
+                self._find_violations(traj, obstacles, contacts)
+                minimum = self._last_minimum
+                break
+        ok = reason == "converged"
+        self.rank_checks.append(
+            dict(
+                valid=ok,
+                reason=reason,
+                residual=residual,
+                minimum_mass=minimum_mass,
+                min_distance=minimum,
+                active_set_updates=updates,
+            )
+        )
+        counts = [sum(c.obstacle_idx == j for c in contacts) for j in obstacles]
+        return traj, len(contacts), max(counts, default=0), ok
 
     # ------------------------------------------------------------------
     #  Trajectory construction through contact knot states
     # ------------------------------------------------------------------
 
     def _build_trajectory(self, p0, v0, pf, vf, contacts, obstacles):
+        cached = getattr(self, "_recovered_trajectory", None)
+        if cached is not None and cached[0] == trajectory_key(
+            p0, v0, pf, vf, contacts, obstacles, self.T, self.R
+        ):
+            return cached[1]
         T = self.T
         R = self.R
 
@@ -238,7 +335,10 @@ class PrioritizedSCI(Solver):
             coeffs = cubic_coefficients(p0, v0, pf, vf, T)
             return PiecewiseCubicTrajectory(segments=[(coeffs, 0.0, T)], T=T)
 
-        sorted_c = sorted(contacts, key=lambda c: c.t_star)
+        sorted_c = contacts
+        gaps = np.diff([0.0] + [c.t_star for c in contacts] + [T])
+        if np.any(gaps <= 0) or np.any(gaps < self.options.sci_min_contact_gap):
+            raise ValueError("Contact times must be ordered and strictly interior")
         times = [0.0] + [c.t_star for c in sorted_c] + [T]
         states = [(p0.copy(), v0.copy())]
 
@@ -269,33 +369,20 @@ class PrioritizedSCI(Solver):
     # ------------------------------------------------------------------
 
     def _find_violations(self, traj, obstacles, contacts):
-        """Exact continuous-time violation search.
-
-        On the intersection of a robot segment and an obstacle segment the
-        relative trajectory is a single cubic, so the minima of the
-        distance are located exactly by find_distance_minima (real roots
-        of the degree-5 derivative of the squared distance, plus the
-        subinterval endpoints). Minima within detection_tol in time of an
-        existing contact with the same obstacle are skipped, mirroring
-        the joint solver.
-        """
-        R = self.R
-        tol = self.detection_tol
-        violations = []
-
-        contact_times = {}
-        for c in contacts:
-            contact_times.setdefault(c.obstacle_idx, []).append(c.t_star)
+        """Find the deepest violation over all common polynomial intervals."""
+        self._last_minimum = np.inf
+        if not obstacles:
+            return []
+        coefficients, durations, offsets, indices = [], [], [], []
 
         robot_bps = [seg[1] for seg in traj.segments] + [traj.T]
 
         for obs_idx, obs in obstacles.items():
             obs_bps = [seg[1] for seg in obs.segments] + [obs.T]
             bps = sorted(set(robot_bps + obs_bps))
-            tcs = contact_times.get(obs_idx, [])
 
             for u0, u1 in zip(bps[:-1], bps[1:], strict=False):
-                if u1 - u0 < 1e-12:
+                if u1 <= u0:
                     continue
                 rc, rt_s = traj._find_segment(u0 + 0.5 * (u1 - u0))
                 oc, ot_s = obs._find_segment(u0 + 0.5 * (u1 - u0))
@@ -303,13 +390,17 @@ class PrioritizedSCI(Solver):
                 oc_loc = _shift_cubic(oc, u0 - ot_s)
                 rel = tuple(rc_loc[k] - oc_loc[k] for k in range(4))
 
-                for t, dist in find_distance_minima(rel, u1 - u0, u0):
-                    if dist < R - tol and not any(
-                        abs(t - tc) < tol for tc in tcs
-                    ):
-                        violations.append((obs_idx, float(t), float(dist)))
+                coefficients.append(rel)
+                durations.append(u1 - u0)
+                offsets.append(u0)
+                indices.append(obs_idx)
 
-        return violations
+        times, distances = minima(coefficients, durations)
+        k = int(np.argmin(distances))
+        self._last_minimum = float(distances[k])
+        if distances[k] < self.R - self.detection_tol:
+            return [(indices[k], float(offsets[k] + times[k] * durations[k]), float(distances[k]))]
+        return []
 
     def _init_contact(self, obs_idx, t_star, traj, obstacles):
         obs = obstacles[obs_idx]
@@ -333,95 +424,96 @@ class PrioritizedSCI(Solver):
 
     def _solve_contact_system(self, p0, v0, pf, vf, contacts, obstacles):
         if not contacts:
-            return contacts
-
-        T = self.T
-        R = self.R
-        K = len(contacts)
-        obs_idxs = [c.obstacle_idx for c in contacts]
-
-        def residuals(x):
-            c_list = []
-            for i in range(K):
-                t_star = float(np.clip(x[3 * i], 1e-6, T - 1e-6))
-                phi = float(x[3 * i + 1])
-                nu = float(x[3 * i + 2])
-                c_list.append(
-                    _ObstacleContact(
-                        obstacle_idx=obs_idxs[i], t_star=t_star, phi=phi, nu=nu
-                    )
-                )
-            c_list.sort(key=lambda c: c.t_star)
-
-            traj = self._build_trajectory(p0, v0, pf, vf, c_list, obstacles)
-
-            res = []
-
-            # Acceleration continuity at each interior knot (each contact)
-            for i in range(K):
-                coeffs_left = traj.segments[i][0]
-                t_left = traj.segments[i][2] - traj.segments[i][1]
-                acc_left = eval_cubic_acc(coeffs_left, t_left)
-                coeffs_right = traj.segments[i + 1][0]
-                acc_right = eval_cubic_acc(coeffs_right, 0.0)
-                res.extend(acc_left - acc_right)
-
-            # Radial jerk jump: the robot's jerk kink at each contact must
-            # point along the contact normal (stationarity; the tangency
-            # condition is already absorbed by the contact parameterization)
-            for i, c in enumerate(c_list):
-                jerk_left = eval_cubic_jerk(traj.segments[i][0])
-                jerk_right = eval_cubic_jerk(traj.segments[i + 1][0])
-                dj = jerk_right - jerk_left
-                res.append(dj[0] * np.sin(c.phi) - dj[1] * np.cos(c.phi))
-
-            return np.array(res)
-
+            return [], dict(success=True, message="empty_active_set", residual=0.0), []
+        system = _ObstacleMatching(self, p0, v0, pf, vf, contacts, obstacles)
         x0 = np.concatenate([c.to_vector() for c in contacts])
-        fsolve_kwargs = {"full_output": True}
-        if self.fsolve_xtol > 0:
-            fsolve_kwargs["xtol"] = self.fsolve_xtol
-        matching_start = time.perf_counter()
-        sol, _info, _ier, _msg = fsolve(residuals, x0, **fsolve_kwargs)
-        self.matching_seconds += time.perf_counter() - matching_start
+        started = time.perf_counter()
+        x, info = damped_newton(system, x0, getattr(self, "deadline", np.inf), self.options)
+        self.matching_seconds += time.perf_counter() - started
         self.matching_solves += 1
-        self.matching_nfev += int(_info["nfev"])
-
-        result = []
-        for i in range(K):
-            t_star = float(np.clip(sol[3 * i], 1e-6, T - 1e-6))
-            phi = float(sol[3 * i + 1])
-            nu = float(sol[3 * i + 2])
-            result.append(
-                _ObstacleContact(
-                    obstacle_idx=obs_idxs[i], t_star=t_star, phi=phi, nu=nu
-                )
+        self.matching_nfev += info["nfev"]
+        info["residual"] = float(np.max(np.abs(system.evaluate(x))))
+        info["success"] = bool(
+            info["success"] and info["residual"] <= self.options.sci_residual_tol
+        )
+        self.roots.append(info)
+        result = system.contacts(x)
+        traj = self._build_trajectory(p0, v0, pf, vf, result, obstacles)
+        masses = [
+            float(
+                (eval_cubic_jerk(traj.segments[k + 1][0]) - eval_cubic_jerk(traj.segments[k][0]))
+                @ np.array([np.cos(c.phi), np.sin(c.phi)])
+                / self.R
             )
-        result.sort(key=lambda c: c.t_star)
-        return result
+            for k, c in enumerate(result)
+        ]
+        if (
+            self.options.sci_reaction_recovery
+            and self.options.sci_root_max_iterations > 0
+            and not info["success"]
+            and info["message"] != "timeout"
+        ):
+            started = time.perf_counter()
+            recovered = self._recover_reactions(
+                p0, v0, pf, vf, contacts, obstacles, result, info, masses
+            )
+            self.matching_seconds += time.perf_counter() - started
+            return recovered
+        return result, info, masses
+
+    def _recover_reactions(self, *args):
+        return recover_reactions(self, *args)
 
     # ------------------------------------------------------------------
     #  Sampling and aggregate metrics
     # ------------------------------------------------------------------
 
-    def _sample_all(self, trajectories, n_points: int = 1000):
-        times = np.linspace(0.0, self.T, n_points)
-        positions = [np.zeros((n_points, 2)) for _ in range(self.N)]
-        velocities = [np.zeros((n_points, 2)) for _ in range(self.N)]
-        accelerations = [np.zeros((n_points, 2)) for _ in range(self.N)]
+    def sample(self, n=1000, times=None):
+        times = np.linspace(0.0, self.T, n) if times is None else np.asarray(times, dtype=float)
+        if (
+            times.ndim != 1
+            or not np.isfinite(times).all()
+            or np.any(times < 0)
+            or np.any(times > self.T)
+        ):
+            raise ValueError("Sample times must be finite and within [0, T]")
+        values = [self._trajectories[i].sample_at(times) for i in range(self.N)]
+        return times, *[[value[k] for value in values] for k in range(3)]
 
-        for i in range(self.N):
-            pos, vel, acc = trajectories[i].sample_at(times)
-            positions[i] = pos
-            velocities[i] = vel
-            accelerations[i] = acc
 
-        return times, positions, velocities, accelerations
+class _ObstacleMatching:
+    """Ordered three-variable blocks; no projection inside the matching equations."""
 
-    def _compute_min_dist(self, positions):
-        pos = np.asarray(positions)  # (N, K, 2)
-        if pos.shape[0] < 2:
-            return float("inf")
-        ii, jj = np.triu_indices(pos.shape[0], k=1)
-        diffs = pos[ii] - pos[jj]
-        return float(np.min(np.linalg.norm(diffs, axis=2)))
+    analytical_jacobian = False
+    b = 3
+
+    def __init__(self, solver, p0, v0, pf, vf, contacts, obstacles):
+        self.solver, self.boundary, self.obstacles = solver, (p0, v0, pf, vf), obstacles
+        self.indices = [c.obstacle_idx for c in contacts]
+        self.m, self.T, self.min_gap = len(contacts), solver.T, solver.options.sci_min_contact_gap
+
+    def knot_times(self, x):
+        if not np.all(np.isfinite(x)):
+            raise ValueError("Nonfinite contact state")
+        times = np.r_[0.0, x.reshape(self.m, 3)[:, 0], self.T]
+        if np.any(np.diff(times) <= 0) or np.any(np.diff(times) < self.min_gap):
+            raise ValueError("Contact times must be ordered and interior")
+        return times
+
+    def contacts(self, x):
+        self.knot_times(x)
+        return [
+            _ObstacleContact(j, *z) for j, z in zip(self.indices, x.reshape(self.m, 3), strict=True)
+        ]
+
+    def evaluate(self, x):
+        contacts = self.contacts(x)
+        traj = self.solver._build_trajectory(*self.boundary, contacts, self.obstacles)
+        residual = np.zeros((self.m, 3))
+        for k, c in enumerate(contacts):
+            left, a, b = traj.segments[k]
+            right = traj.segments[k + 1][0]
+            residual[k, :2] = eval_cubic_acc(right, 0.0) - eval_cubic_acc(left, b - a)
+            jump = eval_cubic_jerk(right) - eval_cubic_jerk(left)
+            residual[k, 2] = jump @ np.array([-np.sin(c.phi), np.cos(c.phi)])
+        return residual.ravel()

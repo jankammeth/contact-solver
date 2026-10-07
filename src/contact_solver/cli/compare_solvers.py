@@ -7,29 +7,24 @@ from pathlib import Path
 
 import numpy as np
 
+from contact_solver.evaluation import (
+    continuous_acceleration_cost,
+    discrete_acceleration_cost,
+    sample_scp_grid,
+)
+
 # Add src to path for development
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from contact_solver import (
-    Config,
-    ContactSolver,
     LiftedSCP,
-    detect_collisions,
+    ContactSolver,
     generate_random_positions,
     generate_swap_positions,
     load_config,
     visualize_comparison,
-    visualize_trajectories,
 )
 
-
-def compute_acceleration_cost(accelerations: list[np.ndarray], dt: float) -> float:
-    """Compute total acceleration cost: sum of integral of ||a||^2 dt."""
-    total_cost = 0.0
-    for a in accelerations:
-        a_squared = np.sum(a**2, axis=1)
-        total_cost += np.trapezoid(a_squared, dx=dt)
-    return total_cost
 
 
 def compute_max_velocity(velocities: list[np.ndarray]) -> float:
@@ -110,7 +105,7 @@ def main():
     scp_iters = scp_metrics["scp_iterations"]
     scp_min_dist = compute_min_distance(scp_traj["positions"])
     scp_max_vel = compute_max_velocity(scp_traj["velocities"])
-    scp_cost = compute_acceleration_cost(scp_traj["accelerations"], h)
+    scp_cost = discrete_acceleration_cost(scp_traj, h)
 
     print(f"  Time: {scp_time:.4f}s")
     print(f"  SCP iterations: {scp_iters}")
@@ -139,7 +134,8 @@ def main():
     contact_time = contact_metrics["timing"]["total_time"]
     contact_min_dist = contact_metrics["min_distance"]
     contact_max_vel = compute_max_velocity(contact_traj["velocities"])
-    contact_cost = compute_acceleration_cost(contact_traj["accelerations"], T / (len(contact_traj["positions"][0]) - 1))
+    contact_cost = discrete_acceleration_cost(sample_scp_grid(contact_solver, scp_solver.K, scp_solver.h), scp_solver.h)
+    contact_cost_continuous = continuous_acceleration_cost(contact_solver)
     num_contacts = contact_metrics["num_contacts"]
 
     print(f"  Time: {contact_time:.4f}s")
@@ -151,8 +147,7 @@ def main():
     else:
         print(f"  Max velocity: {contact_max_vel:.4f} m/s (unconstrained)")
     print(f"  Acceleration cost: {contact_cost:.4f}")
-    if contact_metrics.get("num_velocity_arcs", 0) > 0:
-        print(f"  Velocity arcs: {contact_metrics['num_velocity_arcs']}")
+    print(f"  Continuous acceleration cost (separate): {contact_cost_continuous:.4f}")
 
     # ==================== Comparison ====================
     print("\n" + "=" * 60)
@@ -162,7 +157,7 @@ def main():
     speedup = scp_time / contact_time if contact_time > 0 else float("inf")
     cost_diff = (contact_cost / scp_cost - 1) * 100 if scp_cost > 0 else 0
 
-    print(f"\nTiming:")
+    print("\nTiming:")
     print(f"  LiftedSCP:     {scp_time:.4f}s")
     print(f"  ContactSolver: {contact_time:.4f}s")
     if speedup >= 1:
@@ -174,7 +169,7 @@ def main():
     print(f"  LiftedSCP:     {scp_min_dist:.4f}m {'✓' if scp_min_dist >= R - 0.01 else '✗'}")
     print(f"  ContactSolver: {contact_min_dist:.4f}m {'✓' if contact_min_dist >= R - 0.01 else '✗'}")
 
-    print(f"\nAcceleration Cost:")
+    print("\nAcceleration Cost:")
     print(f"  LiftedSCP:     {scp_cost:.4f}")
     print(f"  ContactSolver: {contact_cost:.4f} ({cost_diff:+.1f}%)")
 

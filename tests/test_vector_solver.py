@@ -7,11 +7,12 @@ import pytest
 from numpy.polynomial import Polynomial
 from scipy.linalg import solve_banded
 
-from contact_solver import Config, ContactSolver, VectorContactSolver
+from contact_solver import Config, ContactSolver
 from contact_solver.cli.vector_sci import smoke_endpoints
 from contact_solver.config import ProblemConfig, SolverConfig
-from contact_solver.solvers.cubic_utils import distance_candidates, find_distance_minima
-from contact_solver.solvers.vector_contact_solver import RelativeTrajectory
+from contact_solver.solvers.cubic_utils import distance_candidates
+from contact_solver.solvers.contact_solver import RelativeTrajectory
+from contact_solver.solvers.matching_numerics import damped_newton
 from contact_solver.solvers.vector_matching import (
     MatchingSystem,
     VectorContact,
@@ -29,7 +30,6 @@ def config(d=2, n=2, **options):
         solver=SolverConfig(
             **dict(
                 sci_detection_tol=1e-6,
-                apply_velocity_bounds=False,
                 use_analytical_jacobian=True,
                 **options,
             )
@@ -45,7 +45,7 @@ def crossing(d=2):
     return start, goal
 
 
-def solve(start, goal, cfg=None, velocities=None, solver_type=VectorContactSolver):
+def solve(start, goal, cfg=None, velocities=None, solver_type=ContactSolver):
     solver = solver_type(cfg or config(start.shape[1], len(start)))
     v0, vf = (None, None) if velocities is None else velocities
     solver.set_initial_states(start, v0)
@@ -118,16 +118,46 @@ def independent_checks(solver):
 
 def acceleration_cost(solver):
     # Two-point Gaussian quadrature integrates the quadratic acceleration cost exactly.
-    if isinstance(solver, VectorContactSolver):
-        knots = solver.trajectory.times
-    else:
-        knots = np.array([solver._segments[0][0][1]] + [s[2] for s in solver._segments[0]])
+    knots = solver.trajectory.times
     cost = 0.0
     for a, b in zip(knots[:-1], knots[1:], strict=True):
         times = (a + b) / 2 + (b - a) / 2 * np.array([-1, 1]) / np.sqrt(3)
         acc = np.asarray(solver.sample(times=times)[3])
         cost += (b - a) / 2 * np.sum(acc**2)
     return cost
+
+
+@pytest.mark.parametrize("component", ["normalization", "tangency"])
+@pytest.mark.parametrize("error,accepted", [(5e-8, True), (2e-7, False)])
+@pytest.mark.parametrize("reaction_constructed", [False, True])
+def test_geometry_equations_use_the_matching_tolerance(
+    component, error, accepted, reaction_constructed
+):
+    # A linear relative trajectory has zero acceleration/jerk residuals;
+    # only the chosen contact-geometry equation has a nonzero residual.
+    cfg = config(sci_root_max_iterations=0)
+    solver = ContactSolver(cfg)
+    solver.min_gap = cfg.solver.sci_min_contact_gap
+    normal = np.array([np.sqrt(1 + error) if component == "normalization" else 1.0, 0.0])
+    velocity = np.array([error if component == "tangency" else 0.0, 0.0])
+    time = solver.T / 2
+    r0 = solver.R * normal - time * velocity
+    rf = solver.R * normal + time * velocity
+    solver.set_initial_states(np.array([r0, -r0]) / 2, np.array([velocity, -velocity]) / 2)
+    solver.set_final_states(np.array([rf, -rf]) / 2, np.array([velocity, -velocity]) / 2)
+    contact = VectorContact(
+        (0, 1), time, normal, velocity, 0.0, np.empty((0, 2)), np.empty((0, 2))
+    )
+    system = solver.matching_system([contact])
+    x = contact.to_vector()
+    trajectory = RelativeTrajectory.from_system(system, x, np.zeros((4, 2)))
+    trajectory.reaction_constructed = reaction_constructed
+    checks = solver._checks(system, x, trajectory)
+    assert checks[component] == pytest.approx(error, rel=1e-7, abs=1e-15)
+    assert checks["residual"] == pytest.approx(error, rel=1e-7, abs=1e-15)
+    assert checks["valid"] is accepted
+    _, info = damped_newton(system, x, np.inf, cfg.solver)
+    assert info["success"] is accepted
 
 
 @pytest.mark.parametrize("d", [2, 3, 5, 10])
@@ -230,7 +260,7 @@ def test_genuinely_nonplanar_interacting_fleet(d):
 
 
 @pytest.mark.parametrize("case", ["head_on", "offset", "figure82", "velocity"])
-def test_planar_regression_against_existing_solver(case):
+def test_planar_cases_use_one_joint_solver(case):
     cfg = config()
     if case == "figure82":
         rng = np.random.default_rng(82)
@@ -257,20 +287,14 @@ def test_planar_regression_against_existing_solver(case):
         if case == "velocity"
         else None
     )
-    legacy, old = solve(start, goal, cfg, velocities, ContactSolver)
-    vector, new = solve(start, goal, cfg, velocities)
-    assert old["metrics"]["converged"] and new["metrics"]["converged"]
+    vector, result = solve(start, goal, cfg, velocities)
+    assert result["metrics"]["converged"]
     independent_checks(vector)
-    assert old["metrics"]["num_contacts"] == new["metrics"]["num_contacts"]
-    np.testing.assert_allclose(acceleration_cost(vector), acceleration_cost(legacy), rtol=2e-5)
-    # Head-on symmetry permits opposite sides; cost/feasibility are the comparison there.
-    if case != "head_on":
-        np.testing.assert_allclose(vector.sample()[1], legacy.sample()[1], atol=2e-5)
 
 
 @pytest.mark.parametrize("d", [2, 3, 5, 10])
 def test_degenerate_initialization(d):
-    solver = VectorContactSolver(config(d))
+    solver = ContactSolver(config(d))
     solver.min_gap = 1e-5
     zeros = np.zeros((1, d))
     for velocity in (np.zeros_like(zeros), np.ones_like(zeros)):
@@ -292,7 +316,6 @@ def test_continuous_detection_endpoints_constants_all_coordinates_and_pairs():
         assert min(candidates, key=lambda value: value[1]) == pytest.approx((0.5, 0))
         c[1] = 0
         assert distance_candidates(c, 1, 2) == [(2, 2), (3, 2)]
-        assert find_distance_minima(c, 1, 2) == [(2, 2), (3, 2)]
     coefficients = np.zeros((2, 2, 4, 3))
     coefficients[:, 0, 0, 0] = 2
     coefficients[0, 1, 0] = [3, 0, 1]
@@ -305,13 +328,12 @@ def test_continuous_detection_endpoints_constants_all_coordinates_and_pairs():
 
 def test_statuses_do_not_accept_sampled_separation_or_unconverged_roots():
     start, goal = crossing()
-    solver, result = solve(start, goal, config(sci_max_contacts=0))
+    solver, result = solve(start, goal, config(sci_min_contact_gap=3))
     assert np.min(np.linalg.norm(np.diff(solver.sample(n=2)[1], axis=0), axis=2)) > 1
     assert result["metrics"]["min_distance"] < 1
     assert result["metrics"]["status"] == "unresolved"
-    assert result["metrics"]["convergence_reason"] == "max_contacts"
+    assert result["metrics"]["convergence_reason"] == "minimum_knot_gap"
     for options, expected_status, expected_reason in (
-        ({"sci_max_contacts_per_pair": 0}, "unresolved", "max_contacts_per_pair"),
         ({"sci_min_contact_gap": 3}, "unresolved", "minimum_knot_gap"),
         ({"sci_root_max_iterations": 0}, "root_failure", "iteration_limit"),
     ):
@@ -341,7 +363,7 @@ def test_negative_mass_is_invalid_even_with_small_matching_residual():
 
 
 def test_time_domain_and_jacobian_are_consistent():
-    solver, _ = solve(*crossing())
+    solver, _ = solve(*crossing(), cfg=config(sci_min_contact_gap=1e-5))
     system, x = solver.system, solver.solution.copy()
     for t in (0, solver.T, system.min_gap / 2):
         x[0] = t
@@ -365,13 +387,13 @@ def test_configuration_roundtrip_and_input_validation(tmp_path):
     cfg.to_yaml(path)
     loaded = Config.from_yaml(path)
     assert loaded.problem.dimension == 5
-    solver = VectorContactSolver(loaded)
+    solver = ContactSolver(loaded)
     with pytest.raises(ValueError, match="endpoint shape"):
         solver.set_initial_states(np.zeros((2, 2)))
     with pytest.raises(ValueError, match="finite"):
         solver.set_initial_states(np.full((2, 5), np.nan))
     with pytest.raises(ValueError, match="dimension"):
-        VectorContactSolver(config(d=1))
+        ContactSolver(config(d=1))
     cfg.problem.time_horizon = None
     solver, result = solve(*crossing(5), cfg)
     assert solver.T > 0 and result["metrics"]["converged"]
@@ -380,7 +402,7 @@ def test_configuration_roundtrip_and_input_validation(tmp_path):
 def test_sparse_fallback_and_cli_paths(monkeypatch, tmp_path):
     import json
 
-    import contact_solver.solvers.vector_contact_solver as module
+    import contact_solver.solvers.matching_numerics as module
     from contact_solver.cli.vector_sci import main
 
     def singular(*args, **kwargs):
@@ -413,10 +435,10 @@ def test_sparse_fallback_and_cli_paths(monkeypatch, tmp_path):
         assert data["positions"].shape == (2, 1000, 5)
         assert data["contact_states"].shape == (1, 12)
         assert data["contact_pairs"].shape == (1, 2)
-    cfg.solver.sci_max_contacts = 0
+    cfg.solver.sci_root_max_iterations = 0
     cfg.to_yaml(config_path)
     assert main(args) == 1
-    assert json.loads(output_path.read_text())["status"] == "unresolved"
+    assert json.loads(output_path.read_text())["status"] == "root_failure"
 
 
 @pytest.mark.parametrize("duration", [1e-4, 1, 1000])
@@ -435,7 +457,7 @@ def test_all_stationary_polynomial_candidates(duration):
     assert candidates[-1][0] == duration
 
 
-def test_repeated_pair_contacts_and_pair_cap_after_a_valid_root():
+def test_repeated_pair_contacts():
     rng = np.random.default_rng(2)
     start, goal = rng.normal(size=(3, 3)), rng.normal(size=(3, 3))
     cfg = config(3, 3)
@@ -445,9 +467,113 @@ def test_repeated_pair_contacts_and_pair_cap_after_a_valid_root():
     assert len(solver.contacts) == 2
     assert solver.contacts[0].pair == solver.contacts[1].pair
     independent_checks(solver)
-    cfg.solver.sci_max_contacts_per_pair = 1
+
+
+@pytest.mark.parametrize("d", [2, 3, 5, 10])
+def test_five_robot_smoke_and_direct_endpoints(d):
+    start, goal = smoke_endpoints(d, "fleet5")
+    cfg = config(d=d, n=5)
+    cfg.problem.time_horizon = 6
     solver, result = solve(start, goal, cfg)
-    assert result["metrics"]["checks"]["valid"]
-    assert result["metrics"]["status"] == "unresolved"
-    assert result["metrics"]["convergence_reason"] == "max_contacts_per_pair"
-    assert result["metrics"]["min_distance"] < 0.65 - cfg.solver.sci_detection_tol
+    assert result["metrics"]["converged"]
+    assert result["metrics"]["num_contacts"] > 0
+    independent_checks(solver)
+    endpoints = solver.trajectory.endpoint_states()
+    for order in (0, 1):
+        np.testing.assert_allclose(
+            endpoints[order], solver.trajectory.robots([0, solver.T], order), atol=1e-12
+        )
+
+
+def test_fleet20_seed2_removes_negative_mass_contact():
+    from pathlib import Path
+
+    with np.load(Path(__file__).parent / "data/fleet20_seed2.npz") as data:
+        cfg = config(d=2, n=20, sci_reaction_recovery=True)
+        cfg.solver.sci_detection_tol = 1e-3
+        cfg.problem.time_horizon = float(data["T"])
+        cfg.problem.min_distance = 0.5
+        solver, result = solve(data["p0"], data["pf"], cfg, velocities=(data["v0"], data["vf"]))
+    metrics = result["metrics"]
+    assert metrics["converged"]
+    assert metrics["num_contacts"] == 3
+    assert len(metrics["removed_contacts"]) == 1
+    assert metrics["removed_contacts"][0]["pair"] == (16, 17)
+    assert metrics["checks"]["minimum_mass"] > 0
+    independent_checks(solver)
+
+
+def test_contact_removal_reinsertion_stops_at_deadline(monkeypatch):
+    from types import SimpleNamespace
+    import contact_solver.solvers.contact_solver as module
+
+    clock = SimpleNamespace(now=0.0)
+    monkeypatch.setattr(module, "time", SimpleNamespace(perf_counter=lambda: clock.now))
+
+    def fake_root(self, system, x, deadline):
+        clock.now += 1
+        x = x.copy()
+        x.reshape(system.m, system.b)[:, 1 + 2 * self.d] = -1
+        return x, dict(success=True, message="test_negative_mass", nfev=0)
+
+    monkeypatch.setattr(ContactSolver, "_solve_system", fake_root)
+    _, result = solve(*crossing(), cfg=config(timeout=125))
+    metrics = result["metrics"]
+    assert not metrics["converged"]
+    assert metrics["convergence_reason"] == "timeout"
+    assert metrics["active_set_updates"] > 120
+
+
+@pytest.mark.parametrize("seed", [9, 15, 35, 47])
+def test_fleet20_reaction_recovery(seed):
+    from pathlib import Path
+
+    with np.load(Path(__file__).parent / f"data/fleet20_seed{seed}.npz") as data:
+        cfg = config(d=2, n=20, sci_reaction_recovery=True)
+        cfg.solver.sci_detection_tol = 1e-3
+        cfg.problem.time_horizon = float(data["T"])
+        cfg.problem.min_distance = 0.5
+        solver, result = solve(data["p0"], data["pf"], cfg, velocities=(data["v0"], data["vf"]))
+    assert result["metrics"]["converged"]
+    assert any(root["message"] == "reaction_recovery" for root in result["metrics"]["roots"])
+    independent_checks(solver)
+
+
+@pytest.mark.parametrize("d", [2, 3, 5, 10])
+def test_reaction_jacobian_and_coefficient_construction(d):
+    from contact_solver.solvers.reaction_matching import ReactionMatching
+
+    rng = np.random.default_rng(23)
+    pairs = [(0, 1), (1, 2), (0, 2)]
+    system = MatchingSystem(pairs, *[rng.normal(size=(2, d)) for _ in range(4)], 0.5, 8, 1e-5)
+    reduced = ReactionMatching(system)
+    z = rng.normal(size=(3, d + 2))
+    z[:, 0] = [5, 2, 2.001]  # order exchange and very close knots
+    z[:, -1] *= 0.01
+    w = z.ravel()
+    jac = reduced.evaluate(w, True)
+    numeric = np.empty_like(jac)
+    for j in range(len(w)):
+        delta = np.zeros_like(w)
+        delta[j] = 1e-6
+        numeric[:, j] = (reduced.evaluate(w + delta) - reduced.evaluate(w - delta)) / (2e-6)
+    np.testing.assert_allclose(jac, numeric, rtol=2e-6, atol=2e-6)
+    times, coeffs, order = reduced.coefficients(w)
+    trajectory = RelativeTrajectory(times, coeffs, np.zeros((4, d)), True)
+    relative = trajectory.relative([0, 8])
+    vel = trajectory.relative([0, 8], 1)
+    np.testing.assert_allclose(relative, [system.r0, system.rf], atol=1e-11)
+    np.testing.assert_allclose(vel, [system.v0, system.vf], atol=1e-11)
+    for k, idx in enumerate(order):
+        jump = 6 * (coeffs[k + 1, :, 3] - coeffs[k, :, 3])
+        expected = system.R * system.jerk_factors[idx, :, None] * z[idx, -1] * z[idx, 1 : 1 + d]
+        np.testing.assert_allclose(jump, expected, atol=1e-12)
+
+
+def test_reaction_recovery_respects_deadline():
+    from contact_solver.solvers.reaction_matching import ReactionMatching
+
+    solver, _ = solve(*crossing())
+    reduced = ReactionMatching(solver.system)
+    with pytest.raises(TimeoutError):
+        reduced.solve(solver.solution, deadline=0, max_evaluations=100)

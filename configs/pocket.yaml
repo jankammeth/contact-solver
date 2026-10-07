@@ -16,7 +16,6 @@ description: |
       pocket the slack is pushed down (detection 5e-4, eps_abs = tol/2
       per the phase_diagram conditioning note, eps_rel 0 mandatory)
     - more OSQP/SCP iterations + longer timeout (tighter eps at high K)
-    - sci_max_contacts raised to 200 (Phase C delta-refinement reuse)
   The pocket-probe CLI overrides problem.timestep per K level.
 
 problem:
@@ -63,7 +62,6 @@ solver:
   # cf. phase_diagram.yaml conditioning note); eps_rel MUST stay 0.
   osqp_eps_abs: 2.5e-4
   osqp_eps_rel: 0.0
-  fsolve_xtol: 0.0
 
   # ── Algorithm parameters ───────────────
   scp_max_iterations: 80
@@ -71,17 +69,11 @@ solver:
   osqp_polish: true
   osqp_warm_start: true
   osqp_verbose: false
-  sci_max_contacts: 200
-  sci_max_contacts_per_pair: 200
   sci_min_contact_gap: 0
-  apply_velocity_bounds: false
   timeout: 600.0
 
   # ── Performance optimizations ──────────
   use_analytical_jacobian: true
-  root_method: hybr
-  vectorize_residuals: true
-  vectorize_postprocess: true
 
 visualization:
   show_plots: false

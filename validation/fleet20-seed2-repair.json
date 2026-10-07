@@ -1,0 +1,38 @@
+{
+  "seed": 2,
+  "production_status": "root_failure",
+  "four_contact_masses": [
+    0.008677661056848187,
+    -0.004838570824750375,
+    0.008241073757822983,
+    0.003569121940834949
+  ],
+  "removed_pairs_zero_based": [
+    [
+      16,
+      17
+    ]
+  ],
+  "repaired_contacts": 3,
+  "root": {
+    "success": true,
+    "message": "residual_satisfied",
+    "iterations": 14,
+    "nfev": 58,
+    "sparse_fallbacks": 0
+  },
+  "checks": {
+    "residual": 4.125658148446121e-13,
+    "acceleration_jump": 3.474789900259623e-13,
+    "jerk_balance": 4.125658148446121e-13,
+    "normalization": 2.708944180085382e-14,
+    "tangency": 1.2212453270876722e-14,
+    "endpoint_error": 5.329070518200751e-15,
+    "minimum_mass": 0.00282357732460177,
+    "minimum_knot_gap": 1.8040888821348506,
+    "valid": true
+  },
+  "continuous_minimum": 0.49999999999999956,
+  "cost": 1.55303933237073,
+  "historical_cost": 1.5534280699302707
+}

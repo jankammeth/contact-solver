@@ -58,7 +58,6 @@ solver:
   # ── Solver tolerances ──────────────────
   osqp_eps_abs: 5e-4          # relaxed from 1e-4 (sweep_n) — still well below scp_detection_tol
   osqp_eps_rel: 0
-  fsolve_xtol: 0.0            # 0 = scipy default (~1.49e-8)
 
   # ── Algorithm parameters ───────────────
   scp_max_iterations: 20
@@ -66,10 +65,7 @@ solver:
   osqp_polish: true
   osqp_warm_start: true
   osqp_verbose: false
-  sci_max_contacts: 30
-  sci_max_contacts_per_pair: 20
   sci_min_contact_gap: 0
-  apply_velocity_bounds: false
   timeout: 300.0
 
   # ── PrioritizedSCP-specific ────────────
@@ -79,9 +75,6 @@ solver:
 
   # ── Performance optimizations ──────────
   use_analytical_jacobian: true
-  root_method: hybr
-  vectorize_residuals: true
-  vectorize_postprocess: true
 
 visualization:
   show_plots: false

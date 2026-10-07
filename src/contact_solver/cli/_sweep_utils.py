@@ -8,14 +8,16 @@ braid-word machinery, or the trajectory metric computations.
 from __future__ import annotations
 
 import math
+import multiprocessing as mp
+import traceback
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 from contact_solver.config import Config
+from contact_solver.evaluation import discrete_acceleration_cost
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -58,18 +60,54 @@ def build_scaled_config(base_config: Config, N: int, seed: int, K: int = 100) ->
 # Solver execution with timeout
 # ──────────────────────────────────────────────────────────────────────────────
 
-def run_solver_with_timeout(solver, timeout: float):
-    """Run solver.generate_trajectories() with a soft timeout.
+def _solver_worker(channel, solver, timeout):
+    try:
+        solver.config.solver.timeout = timeout
+        channel.send(("started",))
+        result = solver.generate_trajectories()
+        channel.send(("result", result, solver.__dict__))
+    except BaseException:
+        channel.send(("error", traceback.format_exc()))
+    finally:
+        channel.close()
 
-    Returns (result_dict, timed_out_bool).  On timeout, the worker thread is
-    not killed; partial state cannot be recovered without invasive changes.
+
+def run_solver_with_timeout(solver, timeout: float):
+    """Run in a killable process and restore completed state for cost evaluation.
+
+    Process startup has a separate 300-second limit; the solve deadline starts
+    immediately before generate_trajectories. Reported solve time excludes IPC.
     """
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(solver.generate_trajectories)
-        try:
-            return future.result(timeout=timeout), False
-        except FuturesTimeoutError:
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise ValueError("Solve timeout must be positive and finite")
+    context = mp.get_context("spawn")
+    parent, child = context.Pipe(duplex=False)
+    process = context.Process(target=_solver_worker, args=(child, solver, timeout))
+    try:
+        process.start()
+        child.close()
+        if not parent.poll(300):
             return None, True
+        message = parent.recv()
+        if message[0] == "started":
+            if not parent.poll(timeout):
+                return None, True
+            message = parent.recv()
+        if message[0] == "error":
+            raise RuntimeError(message[1])
+        _, result, state = message
+        solver.__dict__.update(state)
+        return result, False
+    except EOFError as error:
+        raise RuntimeError("Solver worker exited without a result") from error
+    finally:
+        if process.pid is not None:
+            if process.is_alive():
+                process.kill()
+            process.join()
+            process.close()
+        parent.close()
+        child.close()
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -79,11 +117,10 @@ def run_solver_with_timeout(solver, timeout: float):
 def compute_metrics(trajectories: dict, config: Config) -> dict:
     """Compute trajectory metrics (min pairwise distance + discrete cost).
 
-    Cost is a left Riemann sum h * sum ||a[k]||^2, consistent with the
-    piecewise-constant acceleration model used in the SCP QP.
+    Cost is h * sum ||a[k]||^2, the held-acceleration SCP objective.
+    SCI comparison values are evaluated at the corresponding h,...,Kh grid.
     """
     positions = trajectories["positions"]
-    accelerations = trajectories["accelerations"]
 
     N = len(positions)
     K = len(positions[0])
@@ -97,14 +134,9 @@ def compute_metrics(trajectories: dict, config: Config) -> dict:
                 dist = np.linalg.norm(positions[i][k] - positions[j][k])
                 min_dist = min(min_dist, dist)
 
-    # Acceleration cost
-    cost = 0.0
-    for a in accelerations:
-        cost += h * np.sum(a**2)
-
     return {
         "min_distance": min_dist,
-        "acceleration_cost": cost,
+        "acceleration_cost": discrete_acceleration_cost(trajectories, h),
     }
 
 

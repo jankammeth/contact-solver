@@ -11,7 +11,6 @@ Usage:
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 from contact_solver.config import Config, ProblemConfig
 from contact_solver.scenarios import generate_random_positions

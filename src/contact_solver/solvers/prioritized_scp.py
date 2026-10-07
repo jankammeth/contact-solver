@@ -56,7 +56,7 @@ class PrioritizedSCP(Solver):
 
     def generate_trajectories(self, verbose: bool | None = None):
         verbose = verbose if verbose is not None else self.verbose
-        t_wall_start = time.perf_counter()
+        t_call_start = time.perf_counter()
 
         p0 = self.initial_positions.reshape(self.N, 2)
         pf = self.final_positions.reshape(self.N, 2)
@@ -73,6 +73,9 @@ class PrioritizedSCP(Solver):
 
         order = (list(self.priority_order) if self.priority_order is not None
                  else conflict_severity_order(p0, v0, pf, vf, self.T, self.R))
+
+        preprocessing_time = time.perf_counter() - t_call_start
+        t_wall_start = time.perf_counter()
 
         if verbose:
             print(f"PrioritizedSCP: N={self.N}, K={self.K}, T={self.T:.3f}, R={self.R:.3f}m")
@@ -137,7 +140,9 @@ class PrioritizedSCP(Solver):
         metrics = {
             "timing": {
                 "total_time": t_wall_total,
-                "wall_time": t_wall_total,
+                "wall_time": time.perf_counter() - t_call_start,
+                "solve_time": t_wall_total,
+                "preprocessing_time": preprocessing_time,
                 "per_rank_time": time_per_rank,
             },
             "converged": converged,

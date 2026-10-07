@@ -1,0 +1,359 @@
+{
+  "groups": [
+    {
+      "dimension": 2,
+      "n_robots": 16,
+      "method": "sci",
+      "attempts": 2,
+      "accepted": 2,
+      "numerical_converged": 2,
+      "median_success_seconds": 0.5518033124972135,
+      "statuses": {
+        "success": 2
+      }
+    },
+    {
+      "dimension": 2,
+      "n_robots": 16,
+      "method": "scp",
+      "attempts": 2,
+      "accepted": 0,
+      "numerical_converged": 0,
+      "median_success_seconds": null,
+      "statuses": {
+        "hard_timeout": 2
+      }
+    },
+    {
+      "dimension": 2,
+      "n_robots": 32,
+      "method": "sci",
+      "attempts": 2,
+      "accepted": 0,
+      "numerical_converged": 2,
+      "median_success_seconds": null,
+      "statuses": {
+        "root_failure": 2
+      }
+    },
+    {
+      "dimension": 2,
+      "n_robots": 32,
+      "method": "scp",
+      "attempts": 2,
+      "accepted": 0,
+      "numerical_converged": 0,
+      "median_success_seconds": null,
+      "statuses": {
+        "hard_timeout": 2
+      }
+    },
+    {
+      "dimension": 3,
+      "n_robots": 16,
+      "method": "sci",
+      "attempts": 2,
+      "accepted": 2,
+      "numerical_converged": 2,
+      "median_success_seconds": 0.037711499840952456,
+      "statuses": {
+        "success": 2
+      }
+    },
+    {
+      "dimension": 3,
+      "n_robots": 16,
+      "method": "scp",
+      "attempts": 2,
+      "accepted": 2,
+      "numerical_converged": 2,
+      "median_success_seconds": 2.0000109164975584,
+      "statuses": {
+        "success": 2
+      }
+    },
+    {
+      "dimension": 3,
+      "n_robots": 32,
+      "method": "sci",
+      "attempts": 2,
+      "accepted": 2,
+      "numerical_converged": 2,
+      "median_success_seconds": 0.34889956237748265,
+      "statuses": {
+        "success": 2
+      }
+    },
+    {
+      "dimension": 3,
+      "n_robots": 32,
+      "method": "scp",
+      "attempts": 2,
+      "accepted": 0,
+      "numerical_converged": 0,
+      "median_success_seconds": null,
+      "statuses": {
+        "hard_timeout": 2
+      }
+    },
+    {
+      "dimension": 5,
+      "n_robots": 16,
+      "method": "sci",
+      "attempts": 2,
+      "accepted": 2,
+      "numerical_converged": 2,
+      "median_success_seconds": 0.03776833403389901,
+      "statuses": {
+        "success": 2
+      }
+    },
+    {
+      "dimension": 5,
+      "n_robots": 16,
+      "method": "scp",
+      "attempts": 2,
+      "accepted": 2,
+      "numerical_converged": 2,
+      "median_success_seconds": 2.2315606044139713,
+      "statuses": {
+        "success": 2
+      }
+    },
+    {
+      "dimension": 5,
+      "n_robots": 32,
+      "method": "sci",
+      "attempts": 2,
+      "accepted": 2,
+      "numerical_converged": 2,
+      "median_success_seconds": 0.17230552062392235,
+      "statuses": {
+        "success": 2
+      }
+    },
+    {
+      "dimension": 5,
+      "n_robots": 32,
+      "method": "scp",
+      "attempts": 2,
+      "accepted": 2,
+      "numerical_converged": 2,
+      "median_success_seconds": 8.257207438116893,
+      "statuses": {
+        "success": 2
+      }
+    },
+    {
+      "dimension": 10,
+      "n_robots": 16,
+      "method": "sci",
+      "attempts": 2,
+      "accepted": 2,
+      "numerical_converged": 2,
+      "median_success_seconds": 0.04172860400285572,
+      "statuses": {
+        "success": 2
+      }
+    },
+    {
+      "dimension": 10,
+      "n_robots": 16,
+      "method": "scp",
+      "attempts": 2,
+      "accepted": 2,
+      "numerical_converged": 2,
+      "median_success_seconds": 2.3373870415380225,
+      "statuses": {
+        "success": 2
+      }
+    },
+    {
+      "dimension": 10,
+      "n_robots": 32,
+      "method": "sci",
+      "attempts": 2,
+      "accepted": 2,
+      "numerical_converged": 2,
+      "median_success_seconds": 0.1543904165737331,
+      "statuses": {
+        "success": 2
+      }
+    },
+    {
+      "dimension": 10,
+      "n_robots": 32,
+      "method": "scp",
+      "attempts": 2,
+      "accepted": 2,
+      "numerical_converged": 2,
+      "median_success_seconds": 8.69319343706593,
+      "statuses": {
+        "success": 2
+      }
+    }
+  ],
+  "paired": [
+    {
+      "dimension": 2,
+      "n_robots": 16,
+      "seed": 0,
+      "repeat": 0,
+      "initial_interacting_pairs": 6,
+      "both_accepted": false,
+      "speedup": null,
+      "cost_ratio": null
+    },
+    {
+      "dimension": 2,
+      "n_robots": 16,
+      "seed": 0,
+      "repeat": 1,
+      "initial_interacting_pairs": 6,
+      "both_accepted": false,
+      "speedup": null,
+      "cost_ratio": null
+    },
+    {
+      "dimension": 2,
+      "n_robots": 32,
+      "seed": 0,
+      "repeat": 0,
+      "initial_interacting_pairs": 10,
+      "both_accepted": false,
+      "speedup": null,
+      "cost_ratio": null
+    },
+    {
+      "dimension": 2,
+      "n_robots": 32,
+      "seed": 0,
+      "repeat": 1,
+      "initial_interacting_pairs": 10,
+      "both_accepted": false,
+      "speedup": null,
+      "cost_ratio": null
+    },
+    {
+      "dimension": 3,
+      "n_robots": 16,
+      "seed": 0,
+      "repeat": 0,
+      "initial_interacting_pairs": 0,
+      "both_accepted": true,
+      "speedup": 51.014142168236305,
+      "cost_ratio": 1.0000250006236626
+    },
+    {
+      "dimension": 3,
+      "n_robots": 16,
+      "seed": 0,
+      "repeat": 1,
+      "initial_interacting_pairs": 0,
+      "both_accepted": true,
+      "speedup": 55.08364981027488,
+      "cost_ratio": 1.0000250006236626
+    },
+    {
+      "dimension": 3,
+      "n_robots": 32,
+      "seed": 0,
+      "repeat": 0,
+      "initial_interacting_pairs": 1,
+      "both_accepted": false,
+      "speedup": null,
+      "cost_ratio": null
+    },
+    {
+      "dimension": 3,
+      "n_robots": 32,
+      "seed": 0,
+      "repeat": 1,
+      "initial_interacting_pairs": 1,
+      "both_accepted": false,
+      "speedup": null,
+      "cost_ratio": null
+    },
+    {
+      "dimension": 5,
+      "n_robots": 16,
+      "seed": 0,
+      "repeat": 0,
+      "initial_interacting_pairs": 0,
+      "both_accepted": true,
+      "speedup": 54.10214500538401,
+      "cost_ratio": 1.0000250006236626
+    },
+    {
+      "dimension": 5,
+      "n_robots": 16,
+      "seed": 0,
+      "repeat": 1,
+      "initial_interacting_pairs": 0,
+      "both_accepted": true,
+      "speedup": 64.04015804805735,
+      "cost_ratio": 1.0000250006236626
+    },
+    {
+      "dimension": 5,
+      "n_robots": 32,
+      "seed": 0,
+      "repeat": 0,
+      "initial_interacting_pairs": 0,
+      "both_accepted": true,
+      "speedup": 41.88850637520755,
+      "cost_ratio": 1.0000250006236628
+    },
+    {
+      "dimension": 5,
+      "n_robots": 32,
+      "seed": 0,
+      "repeat": 1,
+      "initial_interacting_pairs": 0,
+      "both_accepted": true,
+      "speedup": 55.803340587870686,
+      "cost_ratio": 1.0000250006236628
+    },
+    {
+      "dimension": 10,
+      "n_robots": 16,
+      "seed": 0,
+      "repeat": 0,
+      "initial_interacting_pairs": 0,
+      "both_accepted": true,
+      "speedup": 56.46290713506534,
+      "cost_ratio": 1.0000250006236626
+    },
+    {
+      "dimension": 10,
+      "n_robots": 16,
+      "seed": 0,
+      "repeat": 1,
+      "initial_interacting_pairs": 0,
+      "both_accepted": true,
+      "speedup": 55.59858898026816,
+      "cost_ratio": 1.0000250006236626
+    },
+    {
+      "dimension": 10,
+      "n_robots": 32,
+      "seed": 0,
+      "repeat": 0,
+      "initial_interacting_pairs": 0,
+      "both_accepted": true,
+      "speedup": 55.739198724939094,
+      "cost_ratio": 1.0000250006236626
+    },
+    {
+      "dimension": 10,
+      "n_robots": 32,
+      "seed": 0,
+      "repeat": 1,
+      "initial_interacting_pairs": 0,
+      "both_accepted": true,
+      "speedup": 56.88962343376022,
+      "cost_ratio": 1.0000250006236626
+    }
+  ],
+  "source_directory": "/Users/jankamm/Documents/dev/paper-motion-planning/runs/numerics/dimension-pilot-20260923"
+}

@@ -10,6 +10,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from contact_solver.evaluation import continuous_acceleration_cost
 import pandas as pd
 
 # Add src to path for development
@@ -412,7 +413,7 @@ def create_runtime_dashboard(df: pd.DataFrame, plot_output: str, show_plot: bool
                 ax.scatter(pos + jitter_c, c_show, s=18, color=C_CONTACT, alpha=0.8, edgecolors="black", linewidths=0.3, zorder=3)
 
             ax.axhline(R, color="red", ls="-", lw=1.0, alpha=0.7, label="$R$")
-            ax.axhline(R - det_tol, color="red", ls=":", lw=0.8, alpha=0.5, label=f"$R - \\epsilon$")
+            ax.axhline(R - det_tol, color="red", ls=":", lw=0.8, alpha=0.5, label="$R - \\epsilon$")
             ax.axhspan(R - det_tol, R, color="red", alpha=0.08)
             ax.set_ylim(R - det_tol * 4, R + det_tol * 6)
             ax.set_xticks(d_pos)
@@ -476,16 +477,11 @@ def create_runtime_dashboard(df: pd.DataFrame, plot_output: str, show_plot: bool
             ax.set_xticks(c_pos)
             ax.set_xticklabels(c_labels)
 
-            # Limit lines from config
-            ax.axhline(30, color=C_CONTACT, ls="--", lw=1, alpha=0.5, label="max_contacts (30)")
-            ax.axhline(10, color="#E45756", ls="--", lw=1, alpha=0.5, label="max_per_pair (10)")
             ax.legend(
                 [
                  plt.Rectangle((0, 0), 1, 1, facecolor=C_CONTACT, edgecolor="black"),
-                 plt.Rectangle((0, 0), 1, 1, facecolor="#E45756", edgecolor="black"),
-                 plt.Line2D([0], [0], color=C_CONTACT, ls="--"),
-                 plt.Line2D([0], [0], color="#E45756", ls="--")],
-                ["Total contacts", "Max per pair", "sci_max_contacts", "sci_max_contacts_per_pair"],
+                 plt.Rectangle((0, 0), 1, 1, facecolor="#E45756", edgecolor="black")],
+                ["Total contacts", "Max per pair"],
                 fontsize=7,
             )
     ax.set_title("Contact Counts")
@@ -673,7 +669,7 @@ def create_homotopy_disagreement_plot(
         contact = ContactSolver(config, verbose=False)
         contact.set_initial_states(initial)
         contact.set_final_states(final)
-        contact_result = contact.generate_trajectories()
+        contact.generate_trajectories()
         K = config.problem.n_timesteps
         h = config.problem.timestep
         scp_times = np.arange(1, K + 1) * h
@@ -739,7 +735,6 @@ def run_single_experiment(config: Config, timeout: float = 300.0) -> dict:
     }
 
     scp_traj = None
-    contact_traj = None
     contact_traj_K = None
 
     # ── LiftedSCP ────────────────────────────────────────────
@@ -806,8 +801,6 @@ def run_single_experiment(config: Config, timeout: float = 300.0) -> dict:
             reason = contact_result["metrics"]["convergence_reason"]
             success = contact_result["metrics"]["converged"]
 
-            contact_traj = contact_result["trajectories"] if success else None
-
             # Discrete cost: evaluate continuous trajectories at SCP's K timesteps
             K = config.problem.n_timesteps
             h = config.problem.timestep
@@ -816,11 +809,7 @@ def run_single_experiment(config: Config, timeout: float = 300.0) -> dict:
             contact_traj_K = {"positions": pos_K, "accelerations": acc_K}
             contact_metrics_discrete = compute_metrics(contact_traj_K, config)
 
-            # Continuous cost: trapezoidal integral over dense 1000-point grid
-            contact_acc = contact_result["trajectories"]["accelerations"]
-            T = config.problem.time_horizon
-            dt_cont = T / (len(contact_acc[0]) - 1)
-            cost_continuous = sum(np.trapezoid(np.sum(a**2, axis=1), dx=dt_cont) for a in contact_acc)
+            cost_continuous = continuous_acceleration_cost(contact_solver)
 
             results.update({
                 "contact_success": success,
@@ -830,7 +819,8 @@ def run_single_experiment(config: Config, timeout: float = 300.0) -> dict:
                 "contact_max_contacts_single_pair": contact_result["metrics"]["max_contacts_single_pair"],
                 "contact_cost": contact_metrics_discrete["acceleration_cost"],
                 "contact_cost_continuous": cost_continuous,
-                "contact_min_dist": contact_metrics_discrete["min_distance"],
+                "contact_min_dist": contact_result["metrics"]["min_distance"],
+                "contact_grid_min_dist": contact_metrics_discrete["min_distance"],
             })
     except Exception as e:
         results.update({
@@ -841,7 +831,7 @@ def run_single_experiment(config: Config, timeout: float = 300.0) -> dict:
         })
 
     # ── Cross-solver metrics (only when both succeed) ────────
-    if scp_traj is not None and contact_traj_K is not None:
+    if scp_traj is not None and contact_traj_K is not None and results["contact_success"]:
         # Use K-point resampled trajectories (same grid as SCP, no interpolation)
         scp_pos = scp_traj["positions"]
         contact_pos_K = contact_traj_K["positions"]
@@ -927,8 +917,6 @@ def main():
     print()
 
     all_results = []
-    total_experiments = len(N_values) * len(seeds)
-    completed = 0
 
     start_time = time.time()
 
@@ -940,10 +928,6 @@ def main():
 
             result = run_single_experiment(config, args.timeout)
             all_results.append(result)
-
-            completed += 1
-            elapsed = time.time() - start_time
-            eta = (elapsed / completed) * (total_experiments - completed)
 
             # Status indicator
             scp_ok = result.get("scp_success", False)
